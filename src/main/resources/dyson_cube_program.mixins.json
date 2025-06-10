@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.xkball.dyson_cube_program.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "shoot_screen.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+    "MixinGameRenderer",
+    "MixinLevelRenderer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

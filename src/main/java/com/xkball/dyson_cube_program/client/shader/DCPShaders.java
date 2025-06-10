@@ -1,0 +1,30 @@
+package com.xkball.dyson_cube_program.client.shader;
+
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.xkball.dyson_cube_program.DysonCubeProgram;
+import com.xkball.dyson_cube_program.utils.ThrowableSupplier;
+import com.xkball.dyson_cube_program.utils.VanillaUtils;
+import net.minecraft.client.renderer.ShaderInstance;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+
+@EventBusSubscriber(modid = DysonCubeProgram.MODID,bus = EventBusSubscriber.Bus.MOD,value = Dist.CLIENT)
+public class DCPShaders {
+    
+    public static ShaderInstance BLOOM_COMPOSITE_SHADER;
+    public static ShaderInstance DOWN_SAMPLER_BLUR_SHADER;
+    
+    @SubscribeEvent
+    public static void onRegShader(RegisterShadersEvent event) {
+        var res = event.getResourceProvider();
+        
+        var bloomCompositeShader = ThrowableSupplier.getOrThrow(() -> new ShaderInstance(res,VanillaUtils.modRL("bloom_composite"),DefaultVertexFormat.POSITION));
+        event.registerShader(bloomCompositeShader,s -> BLOOM_COMPOSITE_SHADER = bloomCompositeShader);
+        
+        var downSamplerBlurShader = ThrowableSupplier.getOrThrow(() -> new ShaderInstance(res,VanillaUtils.modRL("down_sampler_blur"),DefaultVertexFormat.POSITION));
+        event.registerShader(downSamplerBlurShader, s -> DOWN_SAMPLER_BLUR_SHADER = s);
+    }
+    
+}
