@@ -1,12 +1,20 @@
 package com.xkball.dyson_cube_program.utils;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
+
+import java.util.Objects;
 
 public class ClientUtils {
     
@@ -27,12 +35,60 @@ public class ClientUtils {
     }
     
     public static void copyFrameBufferColorTo(RenderTarget from, int to) {
+        var currentRead = GL30.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
+        var currentDraw = GL30.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
         GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, from.frameBufferId);
         GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, to);
         GL30.glBlitFramebuffer(0, 0, from.width, from.height,
                 0, 0, from.width, from.height,
                 GL30.GL_COLOR_BUFFER_BIT, GL30.GL_NEAREST);
-        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, 0);
-        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, currentRead);
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, currentDraw);
+    }
+    
+    public static void copyFrameBufferDepthTo(RenderTarget from, RenderTarget to) {
+        copyFrameBufferDepthTo(from, to.frameBufferId);
+    }
+    
+    public static void copyFrameBufferDepthTo(RenderTarget from, int to) {
+        var currentRead = GL30.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
+        var currentDraw = GL30.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, from.frameBufferId);
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, to);
+        GL30.glBlitFramebuffer(0, 0, from.width, from.height,
+                0, 0, from.width, from.height,
+                GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, currentRead);
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, currentDraw);
+    }
+    
+    public static VertexBuffer formMesh(MeshData meshData){
+        var buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
+        buffer.bind();
+        buffer.upload(meshData);
+        VertexBuffer.unbind();
+        return buffer;
+    }
+    
+    public static void drawWithRenderType(RenderType renderType, VertexBuffer buffer){
+        renderType.setupRenderState();
+        var shader = RenderSystem.getShader();
+        if(shader == null) return;
+        var currentBuffer = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+        buffer.bind();
+        buffer.drawWithShader(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), shader);
+        GlStateManager._glBindVertexArray(currentBuffer);
+        renderType.clearRenderState();
+    }
+    
+    public static void drawWithRenderType(RenderType renderType, VertexBuffer buffer, PoseStack poseStack){
+        renderType.setupRenderState();
+        var shader = RenderSystem.getShader();
+        if(shader == null) return;
+        var currentBuffer = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+        buffer.bind();
+        buffer.drawWithShader(RenderSystem.getModelViewMatrix().mul(poseStack.last().pose(),new Matrix4f()), RenderSystem.getProjectionMatrix(), shader);
+        GlStateManager._glBindVertexArray(currentBuffer);
+        renderType.clearRenderState();
     }
 }

@@ -1,0 +1,19 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "one",
+    "dstrgb": "zero"
+  },
+  "vertex": "dyson_cube_program:sun_1",
+  "fragment": "dyson_cube_program:sun_1",
+  "attributes": [ "Position" ],
+  "samplers": [
+
+  ],
+  "uniforms": [
+    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "ProjMat",      "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "ClientTime",   "type": "float",     "count": 1,  "values": [ 0 ]},
+    { "name": "Color",        "type": "float",     "count": 3,  "values": [ 1.0, 1.0, 1.0]}
+  ]
+}

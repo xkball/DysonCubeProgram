@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL46;
 public class BloomPostProcess extends AbstractPostProcess {
     
     private final int samplerDepth;
+    private final RenderTarget swap;
     private final RenderTarget composite;
     private final RenderTarget[] downSamplersH;
     private final RenderTarget[] downSamplersV;
@@ -24,6 +25,7 @@ public class BloomPostProcess extends AbstractPostProcess {
         assert samplerDepth > 0;
         this.samplerDepth = samplerDepth;
         this.composite = createRenderTarget(xSize, ySize);
+        this.swap = createRenderTarget(xSize, ySize,true);
         this.downSamplersH = new RenderTarget[samplerDepth];
         this.downSamplersV = new RenderTarget[samplerDepth];
         for(var i = 0; i < samplerDepth; i++) {
@@ -37,6 +39,7 @@ public class BloomPostProcess extends AbstractPostProcess {
     public void resize(int xSize, int ySize) {
         super.resize(xSize, ySize);
         composite.resize(xSize,ySize,Minecraft.ON_OSX);
+        swap.resize(xSize,ySize,Minecraft.ON_OSX);
         for(var i = 0; i < samplerDepth; i++) {
             var factor = 2 << i;
             downSamplersH[i].resize(xSize/factor,ySize/factor,Minecraft.ON_OSX);
@@ -89,12 +92,31 @@ public class BloomPostProcess extends AbstractPostProcess {
             s.safeGetUniform("BloomIntensive").set(1.7f);
         };
     }
-    
-    private static RenderTarget createRenderTarget(int width, int height) {
-        var renderTarget = new TextureTarget(width, height, false, Minecraft.ON_OSX);
+    private static RenderTarget createRenderTarget(int width, int height){
+        return createRenderTarget(width,height,false);
+    }
+    private static RenderTarget createRenderTarget(int width, int height, boolean useDepth) {
+        var renderTarget = new TextureTarget(width, height, useDepth, Minecraft.ON_OSX);
         renderTarget.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         renderTarget.setFilterMode(GL46.GL_LINEAR);
         return renderTarget;
+    }
+    
+    public void bindAndClear(boolean copyDepth) {
+        this.swap.clear(Minecraft.ON_OSX);
+        this.swap.bindWrite(false);
+        if(copyDepth) {
+            ClientUtils.copyFrameBufferDepthTo(Minecraft.getInstance().getMainRenderTarget(),this.swap);
+        }
+    }
+    
+    public void applyAndUnbind(boolean copyDepth) {
+        this.apply(this.swap);
+        if(copyDepth) {
+            ClientUtils.copyFrameBufferDepthTo(this.swap, Minecraft.getInstance().getMainRenderTarget());
+        }
+        this.swap.unbindWrite();
+        Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
     }
     
 }

@@ -1,5 +1,6 @@
 #version 150
 
+//https://github.com/USS-Shenzhou/MadParticle/blob/temp-bloom/src/main/resources/assets/madparticle/shaders/core/bloom_composite.fsh
 uniform sampler2D DiffuseSampler;
 uniform sampler2D HighLight;
 uniform sampler2D BlurTexture1;
