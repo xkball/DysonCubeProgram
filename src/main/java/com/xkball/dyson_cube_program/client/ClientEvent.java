@@ -1,12 +1,10 @@
 package com.xkball.dyson_cube_program.client;
 
-import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
-import org.joml.Vector3f;
 
 import java.text.NumberFormat;
 

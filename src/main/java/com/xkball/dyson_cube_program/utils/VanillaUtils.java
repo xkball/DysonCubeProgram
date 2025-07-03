@@ -2,11 +2,8 @@ package com.xkball.dyson_cube_program.utils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.xkball.dyson_cube_program.DysonCubeProgram;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.SharedConstants;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,13 +19,16 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec2;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.apache.commons.codec.binary.Base64;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL30;
+import org.joml.Vector3f;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -36,9 +36,12 @@ import java.util.Collection;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class VanillaUtils {
     
+    public static final boolean DEBUG = SharedConstants.IS_RUNNING_WITH_JDWP;
     public static final Direction[] DIRECTIONS = Direction.values();
     public static final ResourceLocation MISSING_TEXTURE = ResourceLocation.withDefaultNamespace("missingno");
     public static final int TRANSPARENT = VanillaUtils.getColor(255, 255, 255, 0);
@@ -85,6 +88,10 @@ public class VanillaUtils {
     //irrelevant vanilla(笑)
     public static int getColor(int r, int g, int b, int a) {
         return a << 24 | r << 16 | g << 8 | b;
+    }
+    
+    public static Vector3f color(int color){
+        return new Vector3f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f);
     }
     
     public static int parseColorHEX(String color) throws IllegalArgumentException {
@@ -142,6 +149,29 @@ public class VanillaUtils {
     
     public static String base64(byte[] bytes) {
         return Base64.encodeBase64String(bytes);
+    }
+    
+    public static byte[] unBase64(String str){
+        return Base64.decodeBase64(str);
+    }
+    
+    public static byte[] gzip(String str){
+        try(var byteOut = new ByteArrayOutputStream()){
+            try(GZIPOutputStream gzip = new GZIPOutputStream(byteOut)) {
+                gzip.write(str.getBytes(StandardCharsets.UTF_8));
+            }
+            return byteOut.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public static byte[] unGzip(byte[] bytes) {
+        try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(bytes))) {
+            return gzip.readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
     
     public static String removeAfterLastCharOf(String str,char c){

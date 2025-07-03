@@ -11,10 +11,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
-
-import java.util.Objects;
 
 public class ClientUtils {
     
