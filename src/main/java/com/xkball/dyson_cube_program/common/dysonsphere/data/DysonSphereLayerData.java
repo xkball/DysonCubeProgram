@@ -63,7 +63,7 @@ public record DysonSphereLayerData(
             int frameCapacity = ByteBufCodecs.INT.decode(buf);
             int frameCursor = ByteBufCodecs.INT.decode(buf);
             int frameRecycleCursor = ByteBufCodecs.INT.decode(buf);
-            List<DysonFrameData> framePool = CodecUtils.StreamCodecs.fixLengthNullableList(ArrayList::new,DysonFrameData.STREAM_CODEC,frameCursor-1).decode(buf);;
+            List<DysonFrameData> framePool = CodecUtils.StreamCodecs.fixLengthNullableList(ArrayList::new,DysonFrameData.STREAM_CODEC,frameCursor-1).decode(buf);
             List<Integer> frameRecycle = CodecUtils.StreamCodecs.fixLengthList(ArrayList::new,ByteBufCodecs.INT,frameRecycleCursor).decode(buf);
             int shellCapacity = ByteBufCodecs.INT.decode(buf);
             int shellCursor = ByteBufCodecs.INT.decode(buf);
