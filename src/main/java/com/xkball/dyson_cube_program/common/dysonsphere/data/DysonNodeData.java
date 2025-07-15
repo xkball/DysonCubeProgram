@@ -3,15 +3,11 @@ package com.xkball.dyson_cube_program.common.dysonsphere.data;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
-import com.xkball.dyson_cube_program.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 import org.joml.Vector3f;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @NonNullByDefault
 public record DysonNodeData(
