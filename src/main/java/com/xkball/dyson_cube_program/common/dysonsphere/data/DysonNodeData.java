@@ -2,6 +2,7 @@ package com.xkball.dyson_cube_program.common.dysonsphere.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -23,7 +24,7 @@ public record DysonNodeData(
         int spReq,
         int cpReq,
         int color // 4 bytes (RGBA)
-) {
+) implements IDGetter {
     
     public static final Codec<DysonNodeData> CODEC = RecordCodecBuilder.create(ins -> ins.group(
             Codec.INT.fieldOf("id").forGetter(DysonNodeData::id),
@@ -76,5 +77,10 @@ public record DysonNodeData(
             ByteBufCodecs.INT.encode(buf, value.color());
         }
     };
+    
+    @Override
+    public int getID() {
+        return id;
+    }
     
 }

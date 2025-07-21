@@ -21,7 +21,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec2;
 import org.apache.commons.codec.binary.Base64;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -42,8 +41,8 @@ public class VanillaUtils {
     public static final boolean DEBUG = SharedConstants.IS_RUNNING_WITH_JDWP;
     public static final Direction[] DIRECTIONS = Direction.values();
     public static final ResourceLocation MISSING_TEXTURE = ResourceLocation.withDefaultNamespace("missingno");
-    public static final int TRANSPARENT = VanillaUtils.getColor(255, 255, 255, 0);
-    public static final int GUI_GRAY = VanillaUtils.getColor(30, 30, 30, 200);
+    public static final int TRANSPARENT = ColorUtils.getColor(255, 255, 255, 0);
+    public static final int GUI_GRAY = ColorUtils.getColor(30, 30, 30, 200);
     
     public static ResourceLocation modRL(String path) {
         return rLOf(DysonCubeProgram.MODID, path);
@@ -81,42 +80,6 @@ public class VanillaUtils {
         if (player != null) {
             server.getCommands().performPrefixedCommand(player.createCommandSourceStack().withPermission(2), command);
         }
-    }
-    
-    //irrelevant vanilla(笑)
-    public static int getColor(int r, int g, int b, int a) {
-        return a << 24 | r << 16 | g << 8 | b;
-    }
-    
-    public static Vector3f color(int color){
-        return new Vector3f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f);
-    }
-    
-    public static int parseColorHEX(String color) throws IllegalArgumentException {
-        if (color.length() == 6) {
-            return getColor(
-                    Integer.parseInt(color.substring(0, 2), 16),
-                    Integer.parseInt(color.substring(2, 4), 16),
-                    Integer.parseInt(color.substring(4, 6), 16),
-                    255);
-        }
-        if (color.length() == 8) {
-            return getColor(
-                    Integer.parseInt(color.substring(0, 2), 16),
-                    Integer.parseInt(color.substring(2, 4), 16),
-                    Integer.parseInt(color.substring(4, 6), 16),
-                    Integer.parseInt(color.substring(6, 8), 16)
-            );
-        }
-        throw new IllegalArgumentException("Format of color must be RGB or RGBA digits");
-    }
-    
-    public static String hexColorFromInt(int color) {
-        var a = color >>> 24;
-        var r = (color >> 16) & 0xFF;
-        var g = (color >> 8) & 0xFF;
-        var b = color & 0xFF;
-        return String.format("%02X%02X%02X%02X", r, g, b, a).toUpperCase();
     }
     
     @SuppressWarnings("SuspiciousNameCombination")

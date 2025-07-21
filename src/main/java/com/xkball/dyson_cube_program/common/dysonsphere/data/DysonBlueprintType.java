@@ -6,13 +6,17 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 
+import java.util.Set;
+
 @NonNullByDefault
 public enum DysonBlueprintType implements StringRepresentable {
-	None,
-	SingleLayer,
-	Layers,
-	SwarmOrbits,
-	DysonSphere;
+	None(Set.of()),
+	SingleLayer(Set.of(DysonElementType.LAYER)),
+	Layers(Set.of(DysonElementType.LAYERS)),
+	SwarmOrbits(Set.of(DysonElementType.SWARMS)),
+	DysonSphere(Set.of(DysonElementType.LAYERS,DysonElementType.SWARMS));
+	
+	public final Set<DysonElementType> elementTypes;
 	
 	public static final DysonBlueprintType[] VALUES = values();
 	
@@ -29,8 +33,12 @@ public enum DysonBlueprintType implements StringRepresentable {
         	buffer.writeInt(value.ordinal());
         }
     };
-	
-	@Override
+    
+    DysonBlueprintType(Set<DysonElementType> elementTypes) {
+        this.elementTypes = elementTypes;
+    }
+    
+    @Override
 	public String getSerializedName() {
 		return name();
 	}

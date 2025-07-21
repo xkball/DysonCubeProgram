@@ -2,8 +2,12 @@ package com.xkball.dyson_cube_program.client.rendertype;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+
+import java.util.OptionalDouble;
+import java.util.function.Function;
 
 public class DCPRenderTypes {
     
@@ -48,4 +52,16 @@ public class DCPRenderTypes {
                     .createCompositeState(false)
     );
     
+    public static final RenderType DEBUG_LINE = RenderType.create(
+            "debug_line",
+            DefaultVertexFormat.POSITION_COLOR,
+            VertexFormat.Mode.DEBUG_LINES,
+            1536,
+            RenderType.CompositeState.builder()
+                    .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
+                    .setLineState(new RenderStateShard.LineStateShard(OptionalDouble.of(6)))
+                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .createCompositeState(false)
+    );
 }

@@ -3,9 +3,13 @@ package com.xkball.dyson_cube_program.utils;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.xkball.dyson_cube_program.client.ClientEvent;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.neoforged.api.distmarker.Dist;
@@ -59,7 +63,11 @@ public class ClientUtils {
         GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, currentDraw);
     }
     
-    public static VertexBuffer formMesh(MeshData meshData){
+    public static BufferBuilder beginWithRenderType(RenderType renderType){
+        return Tesselator.getInstance().begin(renderType.mode,renderType.format);
+    }
+    
+    public static VertexBuffer fromMesh(MeshData meshData){
         var buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
         buffer.bind();
         buffer.upload(meshData);
@@ -87,5 +95,9 @@ public class ClientUtils {
         buffer.drawWithShader(RenderSystem.getModelViewMatrix().mul(poseStack.last().pose(),new Matrix4f()), RenderSystem.getProjectionMatrix(), shader);
         GlStateManager._glBindVertexArray(currentBuffer);
         renderType.clearRenderState();
+    }
+    
+    public static float clientTickWithPartialTick(){
+        return ClientEvent.tickCount + Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
     }
 }

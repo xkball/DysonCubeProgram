@@ -29,6 +29,7 @@ public record DysonSpareBlueprintData(
         int gameRenderMaskS,
         List<DysonOrbitData> swarmOrbits,
         List<Vector4f> sailOrbitColorHSVA,
+        
         int editorRenderMaskL,
         int gameRenderMaskL,
         List<DysonOrbitData> layerOrbits,

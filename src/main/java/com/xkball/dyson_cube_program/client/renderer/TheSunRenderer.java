@@ -10,7 +10,7 @@ import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.client.rendertype.DCPRenderTypes;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
-import com.xkball.dyson_cube_program.utils.VanillaUtils;
+import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.common.util.Lazy;
 import org.joml.Quaternionf;
@@ -18,14 +18,14 @@ import org.joml.Vector3f;
 
 public class TheSunRenderer {
     
-    public static final int SUN_COLOR = VanillaUtils.getColor(255,77,57,255);
+    public static final int SUN_COLOR = ColorUtils.getColor(255,77,57,255);
     //public static final int SUN_COLOR = VanillaUtils.getColor(159,248,229,255);
 
-    private static final Lazy<VertexBuffer> NEAR_SUN_MESH = Lazy.of(() -> ClientUtils.formMesh(createCubeSphereMesh(10,false)));
-    private static final Lazy<VertexBuffer> FAR_SUN_MESH = Lazy.of(() -> ClientUtils.formMesh(createCubeSphereMesh(3,false)));
-    private static final Lazy<VertexBuffer> NEGATIVE_NEAR_SUN_MESH = Lazy.of(() -> ClientUtils.formMesh(createCubeSphereMesh(10,true)));
+    private static final Lazy<VertexBuffer> NEAR_SUN_MESH = Lazy.of(() -> ClientUtils.fromMesh(createCubeSphereMesh(10,false)));
+    private static final Lazy<VertexBuffer> FAR_SUN_MESH = Lazy.of(() -> ClientUtils.fromMesh(createCubeSphereMesh(3,false)));
+    private static final Lazy<VertexBuffer> NEGATIVE_NEAR_SUN_MESH = Lazy.of(() -> ClientUtils.fromMesh(createCubeSphereMesh(10,true)));
     
-    private static final Lazy<VertexBuffer> RING_MESH = Lazy.of(() -> ClientUtils.formMesh(createRingMesh()));
+    private static final Lazy<VertexBuffer> RING_MESH = Lazy.of(() -> ClientUtils.fromMesh(createRingMesh()));
     
     public static Vector3f renderingCenter = new Vector3f();
     public static int contextColor = -1;

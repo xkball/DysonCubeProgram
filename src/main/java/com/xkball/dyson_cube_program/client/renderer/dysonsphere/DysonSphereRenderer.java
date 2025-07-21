@@ -1,0 +1,134 @@
+package com.xkball.dyson_cube_program.client.renderer.dysonsphere;
+
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.math.Axis;
+import com.xkball.dyson_cube_program.api.IDGetter;
+import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
+import com.xkball.dyson_cube_program.client.ClientEvent;
+import com.xkball.dyson_cube_program.client.rendertype.DCPRenderTypes;
+import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
+import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
+import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
+import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSphereLayerData;
+import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.ColorUtils;
+import net.minecraft.client.renderer.RenderType;
+import org.joml.Vector4f;
+
+import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.function.Consumer;
+
+@NonNullByDefault
+public class DysonSphereRenderer {
+    
+    private final DysonSpareBlueprintData data;
+    private final Multimap<RenderType, Pair<VertexBuffer, Consumer<PoseStack>>> meshes = LinkedHashMultimap.create();
+    
+    public DysonSphereRenderer(DysonSpareBlueprintData data) {
+        this.data = data;
+    }
+    
+    public void buildMeshes(){
+        meshes.clear();
+        var elements = data.type().elementTypes;
+        if(elements.contains(DysonElementType.LAYER)){
+            assert data.singleLayer() != null;
+            renderSingleLayer(null, data.singleLayer());
+        }
+        if (elements.contains(DysonElementType.LAYERS)){
+            var id = 1;
+            var orbits = IDGetter.toMap(data.layerOrbits());
+            for (int i = 0; i < data.layers().size(); i++) {
+                var layer = data.layers().get(i);
+                if(layer == null) continue;
+                renderSingleLayer(orbits.get(id), layer);
+                id += 1;
+            }
+        }
+        if (elements.contains(DysonElementType.SWARMS)){
+            for(int i = 0; i < data.swarmOrbits().size(); i++){
+                if(!data.swarmOrbits().get(i).isValidOrbit()) continue;
+                renderSingleSwarm(data.swarmOrbits().get(i),1000,data.sailOrbitColorHSVA().get(i));
+            }
+        }
+    }
+    
+    public void render(PoseStack poseStack){
+        for(var entry : meshes.asMap().entrySet()){
+            for(var meshAndSetup : entry.getValue()){
+                poseStack.pushPose();
+                meshAndSetup.getSecond().accept(poseStack);
+                poseStack.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
+                ClientUtils.drawWithRenderType(entry.getKey(), meshAndSetup.getFirst(), poseStack);
+                poseStack.popPose();
+            }
+        }
+    }
+    
+    private void renderSingleLayer(@Nullable DysonOrbitData orbit, DysonSphereLayerData layer){
+        var defaultColor = ColorUtils.getColor(8,19,23,255);
+        var nodes = IDGetter.toMap(layer.nodePool());
+        var setup = rotateOrbit(orbit);
+        
+        var lineBuilder = ClientUtils.beginWithRenderType(DCPRenderTypes.DEBUG_LINE);
+        var frames = layer.framePool().stream().filter(Objects::nonNull).toList();
+        for(var frame : frames){
+            var nodeA = nodes.get(frame.nodeAID());
+            var nodeB = nodes.get(frame.nodeBID());
+            var color = ColorUtils.abgrToArgb(frame.color());
+            if(color == 0) color = defaultColor;
+            lineBuilder.addVertex(nodeA.pos()).setColor(color);
+            lineBuilder.addVertex(nodeB.pos()).setColor(color);
+        }
+        if(!frames.isEmpty()) meshes.put(RenderType.lines(),Pair.of(ClientUtils.fromMesh(lineBuilder.buildOrThrow()),setup));
+        
+        var shellBuilder = ClientUtils.beginWithRenderType(RenderType.DEBUG_QUADS);
+        var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
+        for(var shell : shells){
+            assert shell.nodes().size() >= 3;
+            var color = ColorUtils.abgrToArgb(shell.color());
+            if(color == 0) color = defaultColor;
+            if(shell.nodes().size() <= 4){
+                var nodeA = nodes.get(shell.nodes().get(0));
+                var nodeB = nodes.get(shell.nodes().get(1));
+                var nodeC = nodes.get(shell.nodes().get(2));
+                var nodeD = shell.nodes().size() == 4 ? nodes.get(shell.nodes().get(3)) : nodeC;
+                
+                shellBuilder.addVertex(nodeA.pos()).setColor(color);
+                shellBuilder.addVertex(nodeB.pos()).setColor(color);
+                shellBuilder.addVertex(nodeC.pos()).setColor(color);
+                shellBuilder.addVertex(nodeD.pos()).setColor(color);
+            }
+            else {
+                for (int i = 0; i < shell.nodes().size()-2; i++) {
+                    var c = ColorUtils.editA(color, (int) (((i+1)/(shell.nodes().size()-2f)) * 255));
+                    var nodeA = nodes.get(shell.nodes().get(i));
+                    var nodeB = nodes.get(shell.nodes().get(i+1));
+                    var nodeC = nodes.get(shell.nodes().get(i+2));
+                    shellBuilder.addVertex(nodeA.pos()).setColor(c);
+                    shellBuilder.addVertex(nodeB.pos()).setColor(c);
+                    shellBuilder.addVertex(nodeC.pos()).setColor(c);
+                    shellBuilder.addVertex(nodeC.pos()).setColor(c);
+                }
+            }
+        }
+        if(!shells.isEmpty()) meshes.put(RenderType.DEBUG_QUADS,Pair.of(ClientUtils.fromMesh(shellBuilder.buildOrThrow()),setup));
+        
+    }
+    
+    private void renderSingleSwarm(DysonOrbitData orbit, int sailCount, Vector4f color){
+    
+    }
+    
+    private static Consumer<PoseStack> rotateOrbit(@Nullable DysonOrbitData orbit){
+        if(orbit == null) return p -> {};
+        return p -> {
+            p.mulPose(orbit.rotation());
+        };
+    }
+}

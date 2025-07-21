@@ -2,6 +2,7 @@ package com.xkball.dyson_cube_program.common.dysonsphere.data;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
@@ -14,12 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @NonNullByDefault
-public record DysonOrbitData(
+public record DysonOrbitData (
     int id,
     float radius,
     Quaternionf rotation,
     boolean enable
-) {
+) implements IDGetter{
     
     public static final Codec<DysonOrbitData> CODEC = RecordCodecBuilder.create(ins -> ins.group(
             Codec.INT.fieldOf("id").forGetter(DysonOrbitData::id),
@@ -52,4 +53,13 @@ public record DysonOrbitData(
     public static final StreamCodec<ByteBuf, List<DysonOrbitData>> LIST_STREAM_CODEC = CodecUtils.StreamCodecs.collection(ArrayList::new, DysonOrbitData.STREAM_CODEC);
     
     public static final StreamCodec<ByteBuf, List<DysonOrbitData>> NULLABLE_LIST_STREAM_CODEC = CodecUtils.StreamCodecs.nullableList(ArrayList::new, DysonOrbitData.STREAM_CODEC);
+    
+    public boolean isValidOrbit(){
+        return radius > 0;
+    }
+    
+    @Override
+    public int getID() {
+        return id;
+    }
 }
