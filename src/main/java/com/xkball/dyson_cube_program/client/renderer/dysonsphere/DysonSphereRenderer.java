@@ -5,10 +5,8 @@ import com.google.common.collect.Multimap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
-import com.xkball.dyson_cube_program.client.ClientEvent;
 import com.xkball.dyson_cube_program.client.rendertype.DCPRenderTypes;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
@@ -63,7 +61,7 @@ public class DysonSphereRenderer {
             for(var meshAndSetup : entry.getValue()){
                 poseStack.pushPose();
                 meshAndSetup.getSecond().accept(poseStack);
-                poseStack.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
+                //poseStack.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
                 ClientUtils.drawWithRenderType(entry.getKey(), meshAndSetup.getFirst(), poseStack);
                 poseStack.popPose();
             }
@@ -93,28 +91,16 @@ public class DysonSphereRenderer {
             assert shell.nodes().size() >= 3;
             var color = ColorUtils.abgrToArgb(shell.color());
             if(color == 0) color = defaultColor;
-            if(shell.nodes().size() <= 4){
-                var nodeA = nodes.get(shell.nodes().get(0));
-                var nodeB = nodes.get(shell.nodes().get(1));
-                var nodeC = nodes.get(shell.nodes().get(2));
-                var nodeD = shell.nodes().size() == 4 ? nodes.get(shell.nodes().get(3)) : nodeC;
-                
-                shellBuilder.addVertex(nodeA.pos()).setColor(color);
-                shellBuilder.addVertex(nodeB.pos()).setColor(color);
-                shellBuilder.addVertex(nodeC.pos()).setColor(color);
-                shellBuilder.addVertex(nodeD.pos()).setColor(color);
-            }
-            else {
-                for (int i = 0; i < shell.nodes().size()-2; i++) {
-                    var c = ColorUtils.editA(color, (int) (((i+1)/(shell.nodes().size()-2f)) * 255));
-                    var nodeA = nodes.get(shell.nodes().get(i));
-                    var nodeB = nodes.get(shell.nodes().get(i+1));
-                    var nodeC = nodes.get(shell.nodes().get(i+2));
-                    shellBuilder.addVertex(nodeA.pos()).setColor(c);
-                    shellBuilder.addVertex(nodeB.pos()).setColor(c);
-                    shellBuilder.addVertex(nodeC.pos()).setColor(c);
-                    shellBuilder.addVertex(nodeC.pos()).setColor(c);
-                }
+            var quads = ClientUtils.earClipping(shell.nodes().stream().map(i -> nodes.get(i).pos()).toList());
+            var i = 1;
+            for(var quad : quads){
+                var a = (i/(float) quads.size()) * 255;
+                i += 1;
+                var c = ColorUtils.editA(color, (int) a);
+                shellBuilder.addVertex(quad.a()).setColor(c);
+                shellBuilder.addVertex(quad.b()).setColor(c);
+                shellBuilder.addVertex(quad.c()).setColor(c);
+                shellBuilder.addVertex(quad.d()).setColor(c);
             }
         }
         if(!shells.isEmpty()) meshes.put(RenderType.DEBUG_QUADS,Pair.of(ClientUtils.fromMesh(shellBuilder.buildOrThrow()),setup));

@@ -2,12 +2,10 @@ package com.xkball.dyson_cube_program.client.rendertype;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 
 import java.util.OptionalDouble;
-import java.util.function.Function;
 
 public class DCPRenderTypes {
     

@@ -1,11 +1,9 @@
 package com.xkball.dyson_cube_program.client.rendertype;
 
-import com.xkball.dyson_cube_program.client.ClientEvent;
 import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
 import com.xkball.dyson_cube_program.client.shader.DCPShaders;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderStateShard;
 
 public class DCPRenderStateShards {

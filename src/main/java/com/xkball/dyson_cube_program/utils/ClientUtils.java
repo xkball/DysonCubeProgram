@@ -9,13 +9,20 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.xkball.dyson_cube_program.client.ClientEvent;
+import com.xkball.dyson_cube_program.utils.math.Quad;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL30;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ClientUtils {
     
@@ -99,5 +106,46 @@ public class ClientUtils {
     
     public static float clientTickWithPartialTick(){
         return ClientEvent.tickCount + Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+    }
+    
+    public static List<Quad> earClipping(List<Vector3f> points){
+        if(points.size() == 3){
+            return List.of(new Quad(points.get(0), points.get(1), points.get(2), points.get(2)));
+        }
+        if(points.size() == 4){
+            return List.of(new Quad(points.get(0), points.get(1), points.get(2), points.get(3)));
+        }
+        var result = new ArrayList<Quad>();
+        var plist = new LinkedList<>(points);
+        var pset = new HashSet<>(points);
+        while (plist.size() > 3){
+            var isEar = true;
+            var iter = plist.iterator();
+            var a= iter.next();
+            var b = iter.next();
+            var c = plist.getLast();
+            var nab = a.cross(b,new Vector3f());
+            var nbc = b.cross(c,new Vector3f());
+            var nac = a.cross(c,new Vector3f());
+            for(var p : pset){
+                if(p == a || p == b || p == c) continue;
+                var dab = Math.signum(nab.dot(p));
+                var dbc = Math.signum(nbc.dot(p));
+                var dac = Math.signum(nac.dot(p));
+                if(dab == dac && dbc == dac){
+                    isEar = false;
+                    break;
+                }
+            }
+            if(isEar){
+                result.add(new Quad(a,b,c,c));
+                plist.removeFirst();
+            }
+            else {
+                plist.addLast(plist.removeFirst());
+            }
+        }
+        result.add(new Quad(plist.getFirst(),plist.get(1),plist.getLast(),plist.getLast()));
+        return result;
     }
 }

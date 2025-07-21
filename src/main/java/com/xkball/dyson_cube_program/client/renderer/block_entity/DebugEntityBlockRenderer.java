@@ -20,7 +20,7 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     
     @SuppressWarnings("unused")
     public DebugEntityBlockRenderer(BlockEntityRendererProvider.Context context) {
-        var bp = DysonSpareBlueprintData.parse(DysonBluePrintTest.bp);
+        var bp = DysonSpareBlueprintData.parse(DysonBluePrintTest.bp2);
         this.sphereRenderer = new DysonSphereRenderer(bp);
         this.sphereRenderer.buildMeshes();
     }
@@ -29,6 +29,7 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     public void render(DebugEntityBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         poseStack.pushPose();
         var scale = 1/6000f;
+        poseStack.scale(-1,1,1);
         poseStack.scale(scale, scale, scale);
         sphereRenderer.render(poseStack);
         poseStack.popPose();
