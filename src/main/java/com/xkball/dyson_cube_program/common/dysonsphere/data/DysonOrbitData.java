@@ -48,6 +48,7 @@ public record DysonOrbitData (
             ByteBufCodecs.QUATERNIONF.encode(buf, value.rotation());
             ByteBufCodecs.BOOL.encode(buf, value.enable());
         }
+        
     };
     
     public static final StreamCodec<ByteBuf, List<DysonOrbitData>> LIST_STREAM_CODEC = CodecUtils.StreamCodecs.collection(ArrayList::new, DysonOrbitData.STREAM_CODEC);

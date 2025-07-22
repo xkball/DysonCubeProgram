@@ -9,7 +9,6 @@ import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.client.ClientEvent;
-import com.xkball.dyson_cube_program.client.rendertype.DCPRenderTypes;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
@@ -24,7 +23,6 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 @NonNullByDefault
@@ -90,10 +88,10 @@ public class DysonSphereRenderer {
             var d = node.value().pos().negate(new Vector3f()).normalize();
             var axis = u.cross(d,new Vector3f()).normalize();
             var theta = Math.acos(u.dot(d));
-            poseStack.translate(-0.5,0,-0.5);
+            //poseStack.translate(-0.5,0,-0.5);
             poseStack.scale(1000,1000,1000);
-            poseStack.mulPose(Axis.of(axis).rotation((float) theta));
-            //poseStack.translate(node.value().pos().x,node.value().pos().y,node.value().pos().z);
+            //poseStack.mulPose(Axis.of(axis).rotation((float) theta));
+            poseStack.translate(node.value().pos().x,node.value().pos().y,node.value().pos().z);
             for(var quad : _quads){
                 var aint = quad.getVertices();
                 for (int i = 0; i < 4; i++) {
