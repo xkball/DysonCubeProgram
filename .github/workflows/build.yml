@@ -47,7 +47,7 @@ jobs:
           NIGHTLY_BUILD: true
           XORLIB.DEBUG: true
         run: |
-          export XORLIB.DEBUG=TRUE
+#          export XORLIB.DEBUG=TRUE
           ./gradlew :build --stacktrace --scan
 
       - name: dslt
