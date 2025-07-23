@@ -102,8 +102,8 @@ dependencies {
     compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
     localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
 
-    compileOnly(annotationProcessor(files("lib/XorLib-0.1.3-all.jar")))
-    //compileOnly(annotationProcessor("com.xkball:XorLib:0.1.3:all"))
+    //compileOnly(annotationProcessor(files("lib/XorLib-0.1.3-all.jar")))
+    compileOnly(annotationProcessor("com.xkball:XorLib:0.1.3:all"))
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -153,6 +153,32 @@ idea {
     }
 }
 
+base {
+    archivesName = mod_id
+    if(System.env.GITHUB_ACTIONS && System.env.NIGHTLY_BUILD){
+        var endfix = System.env.VERSION_IDENTIFIER + "-" + LocalDateTime.now(ZoneOffset.ofHours(8)).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace(':','-')
+        archivesName="${archivesName.get()}-${version}-${endfix}-nightly"
+        version=''
+    }
+}
+
+jar{
+    doLast {
+        if (System.env.GITHUB_ACTIONS) {
+            File theFile = archiveFile.get().getAsFile()
+
+            def outputFile = new File(System.env.GITHUB_OUTPUT)
+            // Use the env-specific line separator for maximally possible compatibility
+            def newLine = System.getProperty('line.separator')
+
+            // Write out new env variable for later usage
+            outputFile << newLine << "artifact_name=${theFile.getName()}"
+            outputFile << newLine << "artifact_publish_name=${archiveBaseName.get()}.jar"
+            outputFile << newLine << "artifact_path=${theFile.absolutePath}"
+        }
+    }
+}
+
 build{
     if (System.env.GITHUB_ACTIONS){
         def outputFile = new File(System.env.GITHUB_OUTPUT)
@@ -162,7 +188,6 @@ build{
         outputFile << newLine << "jar_name=${fileName}"
     }
 }
-
 
 tasks.register("githubActionOutput",DefaultTask){
     if (System.env.GITHUB_ACTIONS) {
@@ -175,14 +200,5 @@ tasks.register("githubActionOutput",DefaultTask){
         outputFile << newLine << "artifact_name=${theFile.getName()}"
         outputFile << newLine << "artifact_publish_name=${publishName}"
         outputFile << newLine << "artifact_path=${theFile.absolutePath}"
-    }
-}
-
-base {
-    archivesName = mod_id
-    if(System.env.GITHUB_ACTIONS && System.env.NIGHTLY_BUILD){
-        var endfix = System.env.VERSION_IDENTIFIER + "-" + LocalDateTime.now(ZoneOffset.ofHours(8)).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace(':','-')
-        archivesName="${archivesName.get()}-${version}-${endfix}-nightly"
-        version=''
     }
 }
