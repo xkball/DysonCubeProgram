@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,6 +45,7 @@ jobs:
         env:
           VERSION_IDENTIFIER: ${{ steps.short-sha.outputs.sha }}
           NIGHTLY_BUILD: true
+          XORLIB.DEBUG: true
         run: ./gradlew :build --stacktrace --scan
 
       - name: dslt
