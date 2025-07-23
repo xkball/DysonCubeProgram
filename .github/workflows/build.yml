@@ -46,9 +46,7 @@ jobs:
           VERSION_IDENTIFIER: ${{ steps.short-sha.outputs.sha }}
           NIGHTLY_BUILD: true
           XORLIB.DEBUG: true
-        run: |
-#          export XORLIB.DEBUG=TRUE
-          ./gradlew :build --stacktrace --scan
+        run: ./gradlew :build --stacktrace --scan
 
       - name: dslt
         id: dslt
