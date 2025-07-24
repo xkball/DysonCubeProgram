@@ -6,7 +6,7 @@ import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 
-@EventBusSubscriber(modid = DysonCubeProgram.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = DysonCubeProgram.MODID)
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
     

@@ -108,6 +108,19 @@ public class ClientUtils {
         renderType.clearRenderState();
     }
     
+    public static void drawWithRenderType(RenderType renderType, Collection<VertexBuffer> buffers, PoseStack poseStack){
+        renderType.setupRenderState();
+        var shader = RenderSystem.getShader();
+        if(shader == null) return;
+        var currentBuffer = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+        for(var buffer : buffers){
+            buffer.bind();
+            buffer.drawWithShader(RenderSystem.getModelViewMatrix().mul(poseStack.last().pose(),new Matrix4f()), RenderSystem.getProjectionMatrix(), shader);
+        }
+        GlStateManager._glBindVertexArray(currentBuffer);
+        renderType.clearRenderState();
+    }
+    
     public static float clientTickWithPartialTick(){
         return ClientEvent.tickCount + Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
     }

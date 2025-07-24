@@ -6,7 +6,7 @@ plugins {
     id 'idea'
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.76'
+    id 'net.neoforged.moddev' version '2.0.103'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -48,7 +48,7 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
         data {
-            data()
+            clientData()
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
         configureEach {
@@ -98,9 +98,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
-    compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
-    localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
+//    compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
+//    compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
+//    localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
 
     //compileOnly(annotationProcessor(files("lib/XorLib-0.1.3-all.jar")))
     compileOnly(annotationProcessor("com.xkball:XorLib:0.1.3:all"))

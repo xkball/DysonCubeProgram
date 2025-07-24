@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.client.rendertype;
+package com.xkball.dyson_cube_program.client.render_pipeline;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;

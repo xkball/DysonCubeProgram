@@ -19,7 +19,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 
 @Mod(DysonCubeProgram.MODID)
-@ModMeta(useLanguages = {"en_us","zh_cn"})
+@ModMeta(minecraftVersion = "1.21.8", useLanguages = {"en_us","zh_cn"})
 public class DysonCubeProgram {
 
     public static final String MODID = "dyson_cube_program";
@@ -30,7 +30,7 @@ public class DysonCubeProgram {
         DCPTempReg.init(modEventBus);
     }
 
-    @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {

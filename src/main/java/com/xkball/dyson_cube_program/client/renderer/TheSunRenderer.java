@@ -8,7 +8,7 @@ import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
-import com.xkball.dyson_cube_program.client.rendertype.DCPRenderTypes;
+import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderTypes;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;

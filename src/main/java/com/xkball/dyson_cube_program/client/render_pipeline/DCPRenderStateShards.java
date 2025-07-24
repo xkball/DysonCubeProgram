@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.client.rendertype;
+package com.xkball.dyson_cube_program.client.render_pipeline;
 
 import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
 import com.xkball.dyson_cube_program.client.shader.DCPShaders;
