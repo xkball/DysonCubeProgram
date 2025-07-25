@@ -1,18 +1,14 @@
 package com.xkball.dyson_cube_program.client.renderer;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexBuffer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
-import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderTypes;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
+import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
-import net.neoforged.neoforge.common.util.Lazy;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -21,13 +17,14 @@ public class TheSunRenderer {
     public static final int SUN_COLOR = ColorUtils.getColor(255,77,57,255);
     //public static final int SUN_COLOR = VanillaUtils.getColor(159,248,229,255);
 
-    private static final Lazy<VertexBuffer> NEAR_SUN_MESH = Lazy.of(() -> ClientUtils.fromMesh(createCubeSphereMesh(10,false)));
-    private static final Lazy<VertexBuffer> FAR_SUN_MESH = Lazy.of(() -> ClientUtils.fromMesh(createCubeSphereMesh(3,false)));
-    private static final Lazy<VertexBuffer> NEGATIVE_NEAR_SUN_MESH = Lazy.of(() -> ClientUtils.fromMesh(createCubeSphereMesh(10,true)));
+    private static final MeshBundle<RenderPipeline> SUN_LAYER0 = MeshBundle.of("near_sun_mesh", DCPRenderPipelines.SUN_0, b -> createCubeSphereMesh(b, 10, false));
+    private static final MeshBundle<RenderPipeline> SUN_LAYER1 = MeshBundle.of("near_sun_mesh", DCPRenderPipelines.SUN_1, b -> createCubeSphereMesh(b, 10, false));
+    //private static final MeshBundle<RenderPipeline> FAR_SUN_MESH = MeshBundle.of("far_sun_mesh", DCPRenderPipelines.SUN_0, b -> createCubeSphereMesh(b, 3, false));
     
-    private static final Lazy<VertexBuffer> RING_MESH = Lazy.of(() -> ClientUtils.fromMesh(createRingMesh()));
+    private static final MeshBundle<RenderPipeline> RING_MESH = MeshBundle.of("ring", DCPRenderPipelines.SUN_2, TheSunRenderer::createRingMesh);
     
     public static Vector3f renderingCenter = new Vector3f();
+    
     public static int contextColor = -1;
     
     private static final Vector3f[][] BASE_POINTS = new Vector3f[][]{
@@ -43,8 +40,7 @@ public class TheSunRenderer {
         renderingCenter = center;
     }
     
-    public static MeshData createCubeSphereMesh(int edgePoints, boolean negative){
-        var builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+    public static void createCubeSphereMesh(BufferBuilder builder, int edgePoints, boolean negative){
         for(var d = 0; d < BASE_POINTS.length; d++){
             var points = BASE_POINTS[d];
             var di = points[1].sub(points[0],new Vector3f()).mul(1f/(edgePoints+1));
@@ -67,11 +63,9 @@ public class TheSunRenderer {
                 }
             }
         }
-        return builder.buildOrThrow();
     }
     
-    public static MeshData createRingMesh(){
-        var builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+    public static void createRingMesh(BufferBuilder builder){
         for(var i = 0; i < 36; i++){
             var x1 = (float) Math.cos(Math.toRadians(i*10));
             var y1 = (float) Math.sin(Math.toRadians(i*10));
@@ -82,7 +76,6 @@ public class TheSunRenderer {
             builder.addVertex(new Vector3f(x2,y2,0).mul(0.8f));
             builder.addVertex(new Vector3f(x2,y2,0).mul(1.8f));
         }
-        return builder.buildOrThrow();
     }
     
     public static Vector3f getRenderDirection(){
@@ -94,11 +87,11 @@ public class TheSunRenderer {
         TheSunRenderer.contextColor = color;
         TheSunRenderer.setRenderingCenter(center);
         
-        ClientUtils.drawWithRenderType(DCPRenderTypes.THE_SUN_0, TheSunRenderer.NEAR_SUN_MESH.get(),poseStack);
+        TheSunRenderer.SUN_LAYER0.render(poseStack);
 
         poseStack.pushPose();
         poseStack.scale(1.05f, 1.05f, 1.05f);
-        ClientUtils.drawWithRenderType(DCPRenderTypes.THE_SUN_1, TheSunRenderer.NEAR_SUN_MESH.get(),poseStack);
+        TheSunRenderer.SUN_LAYER1.render(poseStack);
         poseStack.popPose();
         
         poseStack.pushPose();
@@ -115,9 +108,14 @@ public class TheSunRenderer {
         var axis = forward.cross(dir, new Vector3f()).normalize();
         poseStack.mulPose(new Quaternionf().rotationAxis(angle, axis));
         if(flag) poseStack.mulPose(Axis.YP.rotationDegrees(180));
-        ClientUtils.drawWithRenderType(DCPRenderTypes.THE_SUN_2, TheSunRenderer.RING_MESH.get(),poseStack);
+        TheSunRenderer.RING_MESH.render(poseStack);
         poseStack.popPose();
 
         DCPPostProcesses.BLOOM.applyAndUnbind(true);
     }
+    
+    public static int getContextColor() {
+        return contextColor;
+    }
+    
 }

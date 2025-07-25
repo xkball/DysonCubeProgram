@@ -38,12 +38,12 @@ public class BloomPostProcess extends AbstractPostProcess {
     @Override
     public void resize(int xSize, int ySize) {
         super.resize(xSize, ySize);
-        composite.resize(xSize,ySize,Minecraft.ON_OSX);
-        swap.resize(xSize,ySize,Minecraft.ON_OSX);
+        composite.resize(xSize,ySize);
+        swap.resize(xSize,ySize);
         for(var i = 0; i < samplerDepth; i++) {
             var factor = 2 << i;
-            downSamplersH[i].resize(xSize/factor,ySize/factor,Minecraft.ON_OSX);
-            downSamplersV[i].resize(xSize/factor,ySize/factor,Minecraft.ON_OSX);
+            downSamplersH[i].resize(xSize/factor,ySize/factor);
+            downSamplersV[i].resize(xSize/factor,ySize/factor);
         }
     }
     

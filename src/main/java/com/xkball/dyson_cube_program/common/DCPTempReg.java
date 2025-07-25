@@ -27,8 +27,8 @@ public class DCPTempReg {
     
     public static final DeferredBlock<DebugEntityBlock> DEBUG_ENTITY_BLOCK = BLOCK.registerBlock("debug_entity_block",DebugEntityBlock::new);
     
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DebugEntityBlockEntity>> DEBUG_ENTITY_BLOCK_ENTITY = BLOCK_ENTITY.register("debug_entity_block",() -> BlockEntityType.Builder.of(
-                   DebugEntityBlockEntity::new, DEBUG_ENTITY_BLOCK.get()).build(DSL.remainderType()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DebugEntityBlockEntity>> DEBUG_ENTITY_BLOCK_ENTITY = BLOCK_ENTITY.register("debug_entity_block",() ->
+                   new BlockEntityType<>(DebugEntityBlockEntity::new, DEBUG_ENTITY_BLOCK.get()));
     
     public static final DeferredItem<BlockItem> DEBUG_ENTITY_BLOCK_ITEM = ITEM.registerSimpleBlockItem(DEBUG_ENTITY_BLOCK);
     

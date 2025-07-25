@@ -1,6 +1,8 @@
 package com.xkball.dyson_cube_program.mixin;
 
+import com.xkball.dyson_cube_program.client.ClientRenderObjects;
 import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,5 +16,12 @@ public class MixinGameRenderer {
     @Inject(method = "reloadShaders", at = @At("RETURN"))
     public void afterReloadShaders(ResourceProvider resourceProvider, CallbackInfo ci){
         DCPPostProcesses.createPostProcess();
+    }
+    
+    @Inject(method = "renderLevel", at = @At("HEAD"))
+    public void beforeRenderLevel(DeltaTracker deltaTracker, CallbackInfo ci){
+        for(var up : ClientRenderObjects.everyFrame){
+            up.update();
+        }
     }
 }

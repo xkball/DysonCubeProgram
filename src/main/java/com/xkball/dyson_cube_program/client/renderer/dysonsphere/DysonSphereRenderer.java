@@ -1,15 +1,14 @@
 package com.xkball.dyson_cube_program.client.renderer.dysonsphere;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexBuffer;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
-import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderTypes;
+import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
+import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
+import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundleWithRenderPipeline;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
@@ -17,11 +16,13 @@ import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSphereLayerDat
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -29,7 +30,7 @@ import java.util.function.Consumer;
 public class DysonSphereRenderer {
     
     private final DysonSpareBlueprintData data;
-    private final Multimap<RenderType, Pair<VertexBuffer, Consumer<PoseStack>>> meshes = LinkedHashMultimap.create();
+    private final Map<RenderPipeline, MeshBundle<RenderPipeline>> meshes = new HashMap<>();
     
     public DysonSphereRenderer(DysonSpareBlueprintData data) {
         this.data = data;
@@ -37,6 +38,7 @@ public class DysonSphereRenderer {
     
     public void buildMeshes(){
         meshes.clear();
+        meshes.put(RenderPipelines.DEBUG_QUADS, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",RenderPipelines.DEBUG_QUADS));
         var elements = data.type().elementTypes;
         if(elements.contains(DysonElementType.LAYER)){
             assert data.singleLayer() != null;
@@ -61,14 +63,8 @@ public class DysonSphereRenderer {
     }
     
     public void render(PoseStack poseStack){
-        for(var entry : meshes.asMap().entrySet()){
-            for(var meshAndSetup : entry.getValue()){
-                poseStack.pushPose();
-                meshAndSetup.getSecond().accept(poseStack);
-                poseStack.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
-                ClientUtils.drawWithRenderType(entry.getKey(), meshAndSetup.getFirst(), poseStack);
-                poseStack.popPose();
-            }
+        for(var entry : meshes.entrySet()){
+            entry.getValue().render(poseStack);
         }
     }
     
@@ -80,7 +76,7 @@ public class DysonSphereRenderer {
         var modelManager = Minecraft.getInstance().getModelManager();
         var nodeModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_NODE_KEY);
         if(nodeModel != null){
-            var nodeBuilder = ClientUtils.beginWithRenderType(RenderType.DEBUG_QUADS);
+            var nodeBuilder = ClientUtils.beginWithRenderPipeline(RenderPipelines.DEBUG_QUADS);
             var _quads = nodeModel.getAll();
             var poseStack = new PoseStack();
             for(var node : nodes.entries()){
@@ -104,10 +100,10 @@ public class DysonSphereRenderer {
                 }
                 poseStack.popPose();
             }
-            if(!nodes.isEmpty()) meshes.put(RenderType.DEBUG_QUADS,Pair.of(ClientUtils.fromMesh(nodeBuilder.buildOrThrow()),setup));
+            if(!nodes.isEmpty()) meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.append(nodeBuilder::buildOrThrow,setup));
         }
        
-        var lineBuilder = ClientUtils.beginWithRenderType(DCPRenderTypes.DEBUG_LINE);
+        var lineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
         var frames = layer.framePool().stream().filter(Objects::nonNull).toList();
         for(var frame : frames){
             var nodeA = nodes.get(frame.nodeAID());
@@ -117,9 +113,9 @@ public class DysonSphereRenderer {
             lineBuilder.addVertex(nodeA.pos()).setColor(color);
             lineBuilder.addVertex(nodeB.pos()).setColor(color);
         }
-        if(!frames.isEmpty()) meshes.put(RenderType.lines(),Pair.of(ClientUtils.fromMesh(lineBuilder.buildOrThrow()),setup));
+        if(!frames.isEmpty()) meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.append(lineBuilder::buildOrThrow,setup));
 
-        var shellBuilder = ClientUtils.beginWithRenderType(RenderType.DEBUG_QUADS);
+        var shellBuilder = ClientUtils.beginWithRenderPipeline(RenderPipelines.DEBUG_QUADS);
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
         for(var shell : shells){
             assert shell.nodes().size() >= 3;
@@ -133,7 +129,7 @@ public class DysonSphereRenderer {
                 shellBuilder.addVertex(quad.d()).setColor(color);
             }
         }
-        if(!shells.isEmpty()) meshes.put(RenderType.DEBUG_QUADS,Pair.of(ClientUtils.fromMesh(shellBuilder.buildOrThrow()),setup));
+        if(!shells.isEmpty()) meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.append(shellBuilder::buildOrThrow,setup));
         
     }
     

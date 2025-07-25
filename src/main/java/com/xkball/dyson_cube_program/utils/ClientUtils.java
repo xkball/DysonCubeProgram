@@ -1,7 +1,11 @@
 package com.xkball.dyson_cube_program.utils;
 
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.CommandEncoder;
+import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -29,6 +33,14 @@ import java.util.List;
 public class ClientUtils {
     
     public static final Logger LOGGER = LogUtils.getLogger();
+    
+    public static GpuDevice getGpuDevice(){
+        return RenderSystem.getDevice();
+    }
+    
+    public static CommandEncoder getCommandEncoder(){
+        return RenderSystem.getDevice().createCommandEncoder();
+    }
     
     @OnlyIn(Dist.CLIENT)
     public static void renderAxis(MultiBufferSource bufferSource, PoseStack poseStack) {
@@ -74,55 +86,12 @@ public class ClientUtils {
         GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, currentDraw);
     }
     
-    public static BufferBuilder beginWithRenderType(RenderType renderType){
-        return Tesselator.getInstance().begin(renderType.mode,renderType.format);
-    }
-    
-    public static VertexBuffer fromMesh(MeshData meshData){
-        var buffer = new VertexBuffer(VertexBuffer.Usage.STATIC);
-        buffer.bind();
-        buffer.upload(meshData);
-        VertexBuffer.unbind();
-        return buffer;
-    }
-    
-    public static void drawWithRenderType(RenderType renderType, VertexBuffer buffer){
-        renderType.setupRenderState();
-        var shader = RenderSystem.getShader();
-        if(shader == null) return;
-        var currentBuffer = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
-        buffer.bind();
-        buffer.drawWithShader(RenderSystem.getModelViewMatrix(), RenderSystem.getProjectionMatrix(), shader);
-        GlStateManager._glBindVertexArray(currentBuffer);
-        renderType.clearRenderState();
-    }
-    
-    public static void drawWithRenderType(RenderType renderType, VertexBuffer buffer, PoseStack poseStack){
-        renderType.setupRenderState();
-        var shader = RenderSystem.getShader();
-        if(shader == null) return;
-        var currentBuffer = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
-        buffer.bind();
-        buffer.drawWithShader(RenderSystem.getModelViewMatrix().mul(poseStack.last().pose(),new Matrix4f()), RenderSystem.getProjectionMatrix(), shader);
-        GlStateManager._glBindVertexArray(currentBuffer);
-        renderType.clearRenderState();
-    }
-    
-    public static void drawWithRenderType(RenderType renderType, Collection<VertexBuffer> buffers, PoseStack poseStack){
-        renderType.setupRenderState();
-        var shader = RenderSystem.getShader();
-        if(shader == null) return;
-        var currentBuffer = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
-        for(var buffer : buffers){
-            buffer.bind();
-            buffer.drawWithShader(RenderSystem.getModelViewMatrix().mul(poseStack.last().pose(),new Matrix4f()), RenderSystem.getProjectionMatrix(), shader);
-        }
-        GlStateManager._glBindVertexArray(currentBuffer);
-        renderType.clearRenderState();
+    public static BufferBuilder beginWithRenderPipeline(RenderPipeline pipeline){
+        return Tesselator.getInstance().begin(pipeline.getVertexFormatMode(),pipeline.getVertexFormat());
     }
     
     public static float clientTickWithPartialTick(){
-        return ClientEvent.tickCount + Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+        return ClientEvent.tickCount + Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
     }
     
     public static List<Quad> earClipping(List<Vector3f> points){
