@@ -8,7 +8,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
-import com.xkball.dyson_cube_program.client.ClientEvent;
+import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
 import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderTypes;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
@@ -18,8 +18,6 @@ import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.util.RandomSource;
-import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -80,33 +78,35 @@ public class DysonSphereRenderer {
         var setup = rotateOrbit(orbit);
         
         var modelManager = Minecraft.getInstance().getModelManager();
-        var nodeModel = modelManager.getModel(ClientEvent.Models.DYSON_NODE);
-        var nodeBuilder = ClientUtils.beginWithRenderType(RenderType.DEBUG_QUADS);
-        var _quads = nodeModel.getQuads(null, null, RandomSource.create(), ModelData.EMPTY, null);
-        var poseStack = new PoseStack();
-        for(var node : nodes.entries()){
-            poseStack.pushPose();
-            var u = new Vector3f(0,1,0);
-            var d = node.value().pos().negate(new Vector3f()).normalize();
-            var axis = u.cross(d,new Vector3f()).normalize();
-            var theta = Math.acos(u.dot(d));
-            poseStack.translate(node.value().pos().x,node.value().pos().y,node.value().pos().z);
-            poseStack.scale(400,400,400);
-            poseStack.mulPose(Axis.of(axis).rotation((float) theta));
-            for(var quad : _quads){
-                var aint = quad.getVertices();
-                for (int i = 0; i < 4; i++) {
-                    var x = Float.intBitsToFloat(aint[i*8]);
-                    var y = Float.intBitsToFloat(aint[i*8+1]);
-                    var z = Float.intBitsToFloat(aint[i*8+2]);
-                    nodeBuilder.addVertex(poseStack.last(),x,y,z).setColor(-1);
+        var nodeModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_NODE_KEY);
+        if(nodeModel != null){
+            var nodeBuilder = ClientUtils.beginWithRenderType(RenderType.DEBUG_QUADS);
+            var _quads = nodeModel.getAll();
+            var poseStack = new PoseStack();
+            for(var node : nodes.entries()){
+                poseStack.pushPose();
+                var u = new Vector3f(0,1,0);
+                var d = node.value().pos().negate(new Vector3f()).normalize();
+                var axis = u.cross(d,new Vector3f()).normalize();
+                var theta = Math.acos(u.dot(d));
+                poseStack.translate(node.value().pos().x,node.value().pos().y,node.value().pos().z);
+                poseStack.scale(400,400,400);
+                poseStack.mulPose(Axis.of(axis).rotation((float) theta));
+                for(var quad : _quads){
+                    var aint = quad.vertices();
+                    for (int i = 0; i < 4; i++) {
+                        var x = Float.intBitsToFloat(aint[i*8]);
+                        var y = Float.intBitsToFloat(aint[i*8+1]);
+                        var z = Float.intBitsToFloat(aint[i*8+2]);
+                        nodeBuilder.addVertex(poseStack.last(),x,y,z).setColor(-1);
+                    }
+                    
                 }
-
+                poseStack.popPose();
             }
-            poseStack.popPose();
+            if(!nodes.isEmpty()) meshes.put(RenderType.DEBUG_QUADS,Pair.of(ClientUtils.fromMesh(nodeBuilder.buildOrThrow()),setup));
         }
-        if(!nodes.isEmpty()) meshes.put(RenderType.DEBUG_QUADS,Pair.of(ClientUtils.fromMesh(nodeBuilder.buildOrThrow()),setup));
-
+       
         var lineBuilder = ClientUtils.beginWithRenderType(DCPRenderTypes.DEBUG_LINE);
         var frames = layer.framePool().stream().filter(Objects::nonNull).toList();
         for(var frame : frames){

@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.utils;
+package com.xkball.dyson_cube_program.utils.func;
 
 import java.util.function.Function;
 

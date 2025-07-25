@@ -2,7 +2,7 @@ package com.xkball.dyson_cube_program.client.shader;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.xkball.dyson_cube_program.DysonCubeProgram;
-import com.xkball.dyson_cube_program.utils.ThrowableSupplier;
+import com.xkball.dyson_cube_program.utils.func.ThrowableSupplier;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.neoforged.api.distmarker.Dist;

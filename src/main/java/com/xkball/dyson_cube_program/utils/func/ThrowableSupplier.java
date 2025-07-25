@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.utils;
+package com.xkball.dyson_cube_program.utils.func;
 
 import com.mojang.logging.LogUtils;
 import org.jetbrains.annotations.NotNull;

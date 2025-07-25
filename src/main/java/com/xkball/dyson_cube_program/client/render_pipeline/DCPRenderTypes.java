@@ -11,22 +11,17 @@ public class DCPRenderTypes {
     
     public static final RenderType THE_SUN_0 = RenderType.create(
             "the_sun",
-            DefaultVertexFormat.POSITION,
-            VertexFormat.Mode.QUADS,
-            RenderType.SMALL_BUFFER_SIZE,
+            1536,
             true,
             false,
+            DCPRenderPipeLines.SUN_0,
             RenderType.CompositeState.builder()
-                    .setShaderState(DCPRenderStateShards.THE_SUN_SHADER_0)
-                    .setOutputState(DCPRenderStateShards.SETUP_SUN_SHADER_0)
                     .createCompositeState(false)
     );
     
     public static final RenderType THE_SUN_1 = RenderType.create(
             "the_sun",
-            DefaultVertexFormat.POSITION,
-            VertexFormat.Mode.QUADS,
-            RenderType.SMALL_BUFFER_SIZE,
+            1536,
             true,
             false,
             RenderType.CompositeState.builder()
@@ -38,9 +33,7 @@ public class DCPRenderTypes {
     
     public static final RenderType THE_SUN_2 = RenderType.create(
             "the_sun",
-            DefaultVertexFormat.POSITION,
-            VertexFormat.Mode.QUADS,
-            RenderType.SMALL_BUFFER_SIZE,
+            1536,
             true,
             false,
             RenderType.CompositeState.builder()
