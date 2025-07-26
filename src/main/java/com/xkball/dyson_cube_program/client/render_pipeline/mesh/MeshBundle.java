@@ -48,6 +48,7 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     
     public abstract void setupRenderPass(RenderPass renderPass);
     public abstract void endRenderPass(RenderPass renderPass);
+    public void beforeSetupRenderPass(){}
     public abstract @Nullable GpuTextureView getColorTarget();
     public abstract @Nullable GpuTextureView getDepthTarget();
     public abstract VertexFormat.Mode getVertexFormatMode();
@@ -93,17 +94,18 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
         if(colorTarget == null || depthTarget == null) return;
         if(this.meshes.isEmpty()) return;
         
-        var transformList = new ArrayList<DynamicUniforms.Transform>();
+        var transformList = new DynamicUniforms.Transform[this.meshes.size()];
         for(int i = 0; i < this.meshes.size(); i++){
             poseStack.pushPose();
             var setup = meshes.get(i).getFirst();
             setup.accept(poseStack);
             var modelView = RenderSystem.getModelViewStack().mul(poseStack.last().pose(), new Matrix4f());
-            transformList.add(new DynamicUniforms.Transform(modelView, new Vector4f(1,1,1,1), new Vector3f(), new Matrix4f(), 0f));
+            transformList[i] = new DynamicUniforms.Transform(modelView, new Vector4f(1,1,1,1), new Vector3f(), new Matrix4f(), 0f);
             poseStack.popPose();
         }
-        var transformBuffers = RenderSystem.getDynamicUniforms().writeTransforms(transformList.toArray(new DynamicUniforms.Transform[0]));
+        var transformBuffers = RenderSystem.getDynamicUniforms().writeTransforms(transformList);
         
+        this.beforeSetupRenderPass();
         try (var renderpass = ClientUtils.getCommandEncoder()
                 .createRenderPass(() -> name + " mesh bundle rendering",colorTarget, OptionalInt.empty(), depthTarget, OptionalDouble.empty())){
             RenderSystem.bindDefaultUniforms(renderpass);

@@ -37,6 +37,9 @@ public class DysonSphereRenderer {
     }
     
     public void buildMeshes(){
+        for(var entry : meshes.entrySet()){
+            entry.getValue().close();
+        }
         meshes.clear();
         meshes.put(RenderPipelines.DEBUG_QUADS, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",RenderPipelines.DEBUG_QUADS));
         meshes.put(DCPRenderPipelines.DEBUG_LINE, new MeshBundleWithRenderPipeline("dyson_sphere_debug_lines",DCPRenderPipelines.DEBUG_LINE));
@@ -64,9 +67,12 @@ public class DysonSphereRenderer {
     }
     
     public void render(PoseStack poseStack){
+        poseStack.pushPose();
+        
         for(var entry : meshes.entrySet()){
             entry.getValue().render(poseStack);
         }
+        poseStack.popPose();
     }
     
     private void renderSingleLayer(@Nullable DysonOrbitData orbit, DysonSphereLayerData layer){
@@ -151,6 +157,7 @@ public class DysonSphereRenderer {
         if(orbit == null) return p -> {};
         return p -> {
             p.mulPose(orbit.rotation());
+            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
         };
     }
 }

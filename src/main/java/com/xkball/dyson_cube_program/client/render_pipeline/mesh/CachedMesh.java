@@ -131,6 +131,9 @@ public class CachedMesh implements ICloseOnExit<CachedMesh> {
     
     public VertexFormat.IndexType getIndexType(){
         checkInit();
+        if(sequentialIndexBuffer){
+            return RenderSystem.getSequentialBuffer(mode).type();
+        }
         //noinspection DataFlowIssue
         return indexType;
     }

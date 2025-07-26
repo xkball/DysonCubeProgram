@@ -18,6 +18,8 @@ import java.util.function.Consumer;
 
 public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
     
+    private GpuBufferSlice contextTransform;
+    
     public MeshBundleWithRenderType(String name, RenderType renderSettings) {
         super(name, renderSettings);
     }
@@ -27,27 +29,31 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
     }
     
     @Override
+    public void beforeSetupRenderPass() {
+        this.contextTransform = RenderSystem.getDynamicUniforms()
+                .writeTransform(
+                        RenderSystem.getModelViewMatrix(),
+                        new Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
+                        RenderSystem.getModelOffset(),
+                        RenderSystem.getTextureMatrix(),
+                        RenderSystem.getShaderLineWidth()
+                );
+    }
+    
+    @Override
     public void setupRenderPass(RenderPass renderPass) {
         if(!(this.renderSettings instanceof RenderType.CompositeRenderType renderType)){
             throw new IllegalStateException("Only support CompositeRenderType for now.");
         }
         else{
             this.renderSettings.setupRenderState();
-            GpuBufferSlice gpubufferslice = RenderSystem.getDynamicUniforms()
-                    .writeTransform(
-                            RenderSystem.getModelViewMatrix(),
-                            new Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
-                            RenderSystem.getModelOffset(),
-                            RenderSystem.getTextureMatrix(),
-                            RenderSystem.getShaderLineWidth()
-                    );
             renderPass.setPipeline(renderType.renderPipeline);
             ScissorState scissorstate = RenderSystem.getScissorStateForRenderTypeDraws();
             if (scissorstate.enabled()) {
                 renderPass.enableScissor(scissorstate.x(), scissorstate.y(), scissorstate.width(), scissorstate.height());
             }
             RenderSystem.bindDefaultUniforms(renderPass);
-            renderPass.setUniform("DynamicTransforms", gpubufferslice);
+            renderPass.setUniform("DynamicTransforms", contextTransform);
             for (int i = 0; i < 12; i++) {
                 GpuTextureView sampler = RenderSystem.getShaderTexture(i);
                 if (sampler != null) {

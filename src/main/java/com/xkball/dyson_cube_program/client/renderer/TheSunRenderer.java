@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
@@ -83,13 +84,12 @@ public class TheSunRenderer {
     }
     
     public static void drawSunAt(PoseStack poseStack, Vector3f center, int color){
-        //DCPPostProcesses.BLOOM.bindAndClear(true);
-        DCPUniforms.THE_SUN_UNIFORM.update();
+        DCPPostProcesses.BLOOM.bindAndClear(true);
         TheSunRenderer.contextColor = color;
         TheSunRenderer.setRenderingCenter(center);
-        
+        DCPUniforms.THE_SUN_UNIFORM.update();
         TheSunRenderer.SUN_LAYER0.render(poseStack);
-
+    
         poseStack.pushPose();
         poseStack.scale(1.05f, 1.05f, 1.05f);
         TheSunRenderer.SUN_LAYER1.render(poseStack);
@@ -112,7 +112,7 @@ public class TheSunRenderer {
         TheSunRenderer.RING_MESH.render(poseStack);
         poseStack.popPose();
 
-        //DCPPostProcesses.BLOOM.applyAndUnbind(true);
+        DCPPostProcesses.BLOOM.applyAndUnbind(true);
     }
     
     public static int getContextColor() {
