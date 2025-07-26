@@ -8,7 +8,7 @@ public class ColorUtils {
         return a << 24 | r << 16 | g << 8 | b;
     }
     
-    public static Vector3f color(int color){
+    public static Vector3f rgbColor(int color){
         return new Vector3f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f);
     }
     

@@ -1,6 +1,8 @@
 #version 150
 
 #moj_import <dyson_cube_program:noise.glsl>
+#moj_import <minecraft:dynamictransforms.glsl>
+#moj_import <minecraft:projection.glsl>
 
 const mat3 m = mat3( 0.00,  0.80,  0.60,
                     -0.80,  0.36, -0.48,
@@ -13,8 +15,11 @@ const vec3[] dirs = vec3[4](
     vec3(1.0,1.0,-1.0)
 );
 
-uniform float ClientTime;
-uniform vec3 Color;
+layout(std140) uniform SunUniform{
+    vec3 RenderDir;
+    float ClientTime;
+    vec3 Color;
+};
 
 in vec3 pos;
 

@@ -13,11 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public class MixinGameRenderer {
     
-    @Inject(method = "reloadShaders", at = @At("RETURN"))
-    public void afterReloadShaders(ResourceProvider resourceProvider, CallbackInfo ci){
-        DCPPostProcesses.createPostProcess();
-    }
-    
     @Inject(method = "renderLevel", at = @At("HEAD"))
     public void beforeRenderLevel(DeltaTracker deltaTracker, CallbackInfo ci){
         for(var up : ClientRenderObjects.everyFrame){

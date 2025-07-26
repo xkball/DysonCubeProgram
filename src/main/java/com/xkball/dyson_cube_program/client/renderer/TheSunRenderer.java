@@ -4,9 +4,9 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
+import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import org.joml.Quaternionf;
@@ -17,11 +17,11 @@ public class TheSunRenderer {
     public static final int SUN_COLOR = ColorUtils.getColor(255,77,57,255);
     //public static final int SUN_COLOR = VanillaUtils.getColor(159,248,229,255);
 
-    private static final MeshBundle<RenderPipeline> SUN_LAYER0 = MeshBundle.of("near_sun_mesh", DCPRenderPipelines.SUN_0, b -> createCubeSphereMesh(b, 10, false));
-    private static final MeshBundle<RenderPipeline> SUN_LAYER1 = MeshBundle.of("near_sun_mesh", DCPRenderPipelines.SUN_1, b -> createCubeSphereMesh(b, 10, false));
+    private static final MeshBundle<RenderPipeline> SUN_LAYER0 = MeshBundle.of("near_sun_mesh", DCPRenderPipelines.SUN_0, b -> createCubeSphereMesh(b, 10, false)).setCloseOnExit();
+    private static final MeshBundle<RenderPipeline> SUN_LAYER1 = MeshBundle.of("near_sun_mesh", DCPRenderPipelines.SUN_1, b -> createCubeSphereMesh(b, 10, false)).setCloseOnExit();
     //private static final MeshBundle<RenderPipeline> FAR_SUN_MESH = MeshBundle.of("far_sun_mesh", DCPRenderPipelines.SUN_0, b -> createCubeSphereMesh(b, 3, false));
     
-    private static final MeshBundle<RenderPipeline> RING_MESH = MeshBundle.of("ring", DCPRenderPipelines.SUN_2, TheSunRenderer::createRingMesh);
+    private static final MeshBundle<RenderPipeline> RING_MESH = MeshBundle.of("ring", DCPRenderPipelines.SUN_2, TheSunRenderer::createRingMesh).setCloseOnExit();
     
     public static Vector3f renderingCenter = new Vector3f();
     
@@ -83,7 +83,8 @@ public class TheSunRenderer {
     }
     
     public static void drawSunAt(PoseStack poseStack, Vector3f center, int color){
-        DCPPostProcesses.BLOOM.bindAndClear(true);
+        //DCPPostProcesses.BLOOM.bindAndClear(true);
+        DCPUniforms.THE_SUN_UNIFORM.update();
         TheSunRenderer.contextColor = color;
         TheSunRenderer.setRenderingCenter(center);
         
@@ -111,7 +112,7 @@ public class TheSunRenderer {
         TheSunRenderer.RING_MESH.render(poseStack);
         poseStack.popPose();
 
-        DCPPostProcesses.BLOOM.applyAndUnbind(true);
+        //DCPPostProcesses.BLOOM.applyAndUnbind(true);
     }
     
     public static int getContextColor() {

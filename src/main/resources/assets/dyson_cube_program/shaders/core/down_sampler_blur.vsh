@@ -1,8 +1,13 @@
 #version 150
 
-uniform mat4 ProjMat;
-uniform vec2 OutSize;
-uniform float Factor;
+#moj_import <minecraft:projection.glsl>
+
+layout(std140) uniform DownSampler{
+    float Factor;
+    int Radius;
+    vec2 BlurDir;
+    vec2 OutSize;
+};
 
 in vec4 Position;
 out vec2 texCoord;

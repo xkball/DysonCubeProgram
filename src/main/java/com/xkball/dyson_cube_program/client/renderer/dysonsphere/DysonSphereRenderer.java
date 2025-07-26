@@ -39,6 +39,7 @@ public class DysonSphereRenderer {
     public void buildMeshes(){
         meshes.clear();
         meshes.put(RenderPipelines.DEBUG_QUADS, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",RenderPipelines.DEBUG_QUADS));
+        meshes.put(DCPRenderPipelines.DEBUG_LINE, new MeshBundleWithRenderPipeline("dyson_sphere_debug_lines",DCPRenderPipelines.DEBUG_LINE));
         var elements = data.type().elementTypes;
         if(elements.contains(DysonElementType.LAYER)){
             assert data.singleLayer() != null;
@@ -100,7 +101,10 @@ public class DysonSphereRenderer {
                 }
                 poseStack.popPose();
             }
-            if(!nodes.isEmpty()) meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.append(nodeBuilder::buildOrThrow,setup));
+            if(!nodes.isEmpty()) {
+                var mesh = nodeBuilder.buildOrThrow();
+                meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.appendImmediately(mesh,setup));
+            }
         }
        
         var lineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
@@ -113,7 +117,10 @@ public class DysonSphereRenderer {
             lineBuilder.addVertex(nodeA.pos()).setColor(color);
             lineBuilder.addVertex(nodeB.pos()).setColor(color);
         }
-        if(!frames.isEmpty()) meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.append(lineBuilder::buildOrThrow,setup));
+        if(!frames.isEmpty()) {
+            var mesh = lineBuilder.buildOrThrow();
+            meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,setup));
+        }
 
         var shellBuilder = ClientUtils.beginWithRenderPipeline(RenderPipelines.DEBUG_QUADS);
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
@@ -129,7 +136,10 @@ public class DysonSphereRenderer {
                 shellBuilder.addVertex(quad.d()).setColor(color);
             }
         }
-        if(!shells.isEmpty()) meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.append(shellBuilder::buildOrThrow,setup));
+        if(!shells.isEmpty()) {
+            var mesh = shellBuilder.buildOrThrow();
+            meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.appendImmediately(mesh,setup));
+        }
         
     }
     

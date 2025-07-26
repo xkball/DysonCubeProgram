@@ -2,6 +2,7 @@ package com.xkball.dyson_cube_program.client.render_pipeline;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -15,6 +16,30 @@ public class DCPRenderPipelines {
             .withLocation(VanillaUtils.modRL("pipeline/debug_line"))
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.DEBUG_LINES)
             .build();
+    
+    public static final ExtendedRenderPipeline BLOOM_DOWN_SAMPLER = ExtendedRenderPipeline.extendedbuilder()
+            .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+            .withLocation(VanillaUtils.modRL("pipeline/bloom_down_sampler"))
+            .withVertexShader(VanillaUtils.modRL("core/down_sampler_blur"))
+            .withFragmentShader(VanillaUtils.modRL("core/down_sampler_blur"))
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withDepthWrite(false)
+            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+            .withUniform("DownSampler", UniformType.UNIFORM_BUFFER)
+            .bindUniform("DownSampler", DCPUniforms.BLOOM_DOWN_SAMPLER_UNIFORM)
+            .buildExtended();
+    
+    public static final ExtendedRenderPipeline BLOOM_COMPOSITE = ExtendedRenderPipeline.extendedbuilder()
+            .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
+            .withLocation(VanillaUtils.modRL("pipeline/bloom_composite"))
+            .withVertexShader(VanillaUtils.modRL("core/blit"))
+            .withFragmentShader(VanillaUtils.modRL("core/bloom_composite"))
+            .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+            .withDepthWrite(false)
+            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+            .withUniform("Composite", UniformType.UNIFORM_BUFFER)
+            .bindUniform("Composite", DCPUniforms.BLOOM_COMPOSITE_UNIFORM)
+            .buildExtended();
     
     public static final ExtendedRenderPipeline SUN_0 = ExtendedRenderPipeline.extendedbuilder()
             .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)

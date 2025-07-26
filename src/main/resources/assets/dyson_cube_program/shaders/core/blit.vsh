@@ -1,7 +1,12 @@
 #version 150
 
-uniform mat4 ProjMat;
-uniform vec2 OutSize;
+#moj_import <minecraft:projection.glsl>
+
+layout(std140) uniform Composite{
+    vec2 OutSize;
+    float BloomRadius;
+    float BloomIntensive;
+};
 
 in vec4 Position;
 out vec2 texCoord;

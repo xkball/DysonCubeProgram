@@ -1,6 +1,6 @@
 package com.xkball.dyson_cube_program.client.render_pipeline.uniform;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
@@ -9,38 +9,39 @@ import com.xkball.dyson_cube_program.api.client.IEndFrameListener;
 import com.xkball.dyson_cube_program.api.client.IUpdatable;
 import com.xkball.dyson_cube_program.api.client.UpdateWhen;
 import com.xkball.dyson_cube_program.client.ClientRenderObjects;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.func.FloatSupplier;
-import net.minecraft.client.renderer.MappableRingBuffer;
+import net.minecraft.client.renderer.DynamicUniformStorage;
 import org.joml.Matrix4fc;
 import org.joml.Vector2fc;
 import org.joml.Vector3fc;
 import org.joml.Vector3ic;
 import org.joml.Vector4fc;
 import org.joml.Vector4ic;
-import org.lwjgl.system.MemoryStack;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
+//使用MappableRingBuffer仅可用于单帧最多更新一次的UBO
 @NonNullByDefault
-public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListener, IUpdatable {
+public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListener, IUpdatable  {
     
     private final String name;
     private final int size;
     private final UpdateWhen updateWhen;
-    private final MappableRingBuffer buffer;
-    private final Consumer<Std140Builder> updateFunc;
+    private final DynamicUniformStorage<BuildUniformBlock> buffer;
+    private final BuildUniformBlock updateFunc;
+    private GpuBufferSlice lastSlice;
     
     public UpdatableUBO(String name, int size, Consumer<Std140Builder> updateFunc, boolean closeOnExit, UpdateWhen updateWhen) {
         this.name = name;
         this.size = size;
-        this.updateFunc = updateFunc;
+        this.updateFunc = new BuildUniformBlock(updateFunc);
         this.updateWhen = updateWhen;
-        this.buffer = new MappableRingBuffer(() -> name, GpuBuffer.USAGE_UNIFORM | GpuBuffer.USAGE_MAP_WRITE, size);
+        this.buffer = new DynamicUniformStorage<>(name,size,2);
         ClientRenderObjects.addEndFrameListener(this);
         if (closeOnExit) {
             ClientRenderObjects.addCloseOnExit(this);
@@ -52,15 +53,16 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
     
     @Override
     public void endFrame() {
-        this.buffer.rotate();
+        this.buffer.endFrame();
     }
     
+    @Override
     public void update(){
-        try(MemoryStack stack = MemoryStack.stackPush()) {
-            var bufferBuilder = Std140Builder.onStack(stack,size);
-            this.updateFunc.accept(bufferBuilder);
-            ClientUtils.getCommandEncoder().writeToBuffer(this.buffer.currentBuffer().slice(), bufferBuilder.get());
-        }
+        this.lastSlice = this.buffer.writeUniform(updateFunc);
+    }
+    
+    public void updateUnsafe(Consumer<Std140Builder> updateFunc){
+        this.lastSlice = this.buffer.writeUniform(new BuildUniformBlock(updateFunc));
     }
     
     @Override
@@ -77,8 +79,20 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
         return updateWhen;
     }
     
-    public GpuBuffer getBuffer(){
-        return buffer.currentBuffer();
+    public GpuBufferSlice getBuffer(){
+        return lastSlice;
+    }
+    
+    public int getSize() {
+        return size;
+    }
+    
+    public record BuildUniformBlock(Consumer<Std140Builder> updateFunc) implements DynamicUniformStorage.DynamicUniform{
+        @Override
+        public void write(ByteBuffer buffer) {
+            var builder = Std140Builder.intoBuffer(buffer);
+            this.updateFunc.accept(builder);
+        }
     }
     
     public static class UBOBuilder {
@@ -118,6 +132,12 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
         public UBOBuilder putVec2(String name, Supplier<Vector2fc> supplier) {
             calculator.putVec2();
             builders.add(b -> b.putVec2(supplier.get()));
+            return this;
+        }
+        
+        public UBOBuilder putVec2(String name, IntSupplier xSupplier, IntSupplier ySupplier) {
+            calculator.putVec2();
+            builders.add(b -> b.putVec2(xSupplier.getAsInt(), ySupplier.getAsInt()));
             return this;
         }
         

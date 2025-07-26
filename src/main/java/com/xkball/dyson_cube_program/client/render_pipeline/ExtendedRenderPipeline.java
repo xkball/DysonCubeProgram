@@ -46,9 +46,6 @@ public class ExtendedRenderPipeline extends RenderPipeline {
     
     public void apply(RenderPass renderPass) {
         for(var entry : UBOBindings.entrySet()) {
-            if(entry.getValue().getUpdateWhen() == UpdateWhen.EveryRenderPass){
-                entry.getValue().update();
-            }
             renderPass.setUniform(entry.getKey(),entry.getValue().getBuffer());
         }
     }

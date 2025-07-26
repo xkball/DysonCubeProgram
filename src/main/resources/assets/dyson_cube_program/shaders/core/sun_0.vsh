@@ -2,10 +2,14 @@
 
 in vec3 Position;
 
-uniform mat4 ModelViewMat;
-uniform mat4 ProjMat;
-uniform vec3 RenderDir;
+#moj_import <minecraft:dynamictransforms.glsl>
+#moj_import <minecraft:projection.glsl>
 
+layout(std140) uniform SunUniform{
+    vec3 RenderDir;
+    float ClientTime;
+    vec3 Color;
+};
 
 out vec3 pos;
 out float theta;

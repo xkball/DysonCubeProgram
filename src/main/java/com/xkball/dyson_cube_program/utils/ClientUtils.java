@@ -1,17 +1,13 @@
 package com.xkball.dyson_cube_program.utils;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.logging.LogUtils;
 import com.xkball.dyson_cube_program.client.ClientEvent;
 import com.xkball.dyson_cube_program.utils.math.Quad;
@@ -20,15 +16,14 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.GL30;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class ClientUtils {
     
@@ -42,7 +37,13 @@ public class ClientUtils {
         return RenderSystem.getDevice().createCommandEncoder();
     }
     
-    @OnlyIn(Dist.CLIENT)
+    public static void clear(RenderTarget target){
+        getCommandEncoder().clearColorTexture(Objects.requireNonNull(target.getColorTexture()),0);
+        if(target.useDepth){
+            getCommandEncoder().clearDepthTexture(Objects.requireNonNull(target.getDepthTexture()),1d);
+        }
+    }
+    
     public static void renderAxis(MultiBufferSource bufferSource, PoseStack poseStack) {
         var buffer = bufferSource.getBuffer(RenderType.debugLineStrip(8));
         var matrix = poseStack.last();
@@ -55,35 +56,11 @@ public class ClientUtils {
     }
     
     public static void copyFrameBufferColorTo(RenderTarget from, RenderTarget to) {
-        copyFrameBufferColorTo(from, to.frameBufferId);
-    }
-    
-    public static void copyFrameBufferColorTo(RenderTarget from, int to) {
-        var currentRead = GL30.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-        var currentDraw = GL30.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
-        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, from.frameBufferId);
-        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, to);
-        GL30.glBlitFramebuffer(0, 0, from.width, from.height,
-                0, 0, from.width, from.height,
-                GL30.GL_COLOR_BUFFER_BIT, GL30.GL_NEAREST);
-        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, currentRead);
-        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, currentDraw);
+            getCommandEncoder().copyTextureToTexture(Objects.requireNonNull(from.getColorTexture()), Objects.requireNonNull(to.getColorTexture()),0, 0, 0, 0, 0, from.width, from.height);
     }
     
     public static void copyFrameBufferDepthTo(RenderTarget from, RenderTarget to) {
-        copyFrameBufferDepthTo(from, to.frameBufferId);
-    }
-    
-    public static void copyFrameBufferDepthTo(RenderTarget from, int to) {
-        var currentRead = GL30.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-        var currentDraw = GL30.glGetInteger(GL30.GL_DRAW_FRAMEBUFFER_BINDING);
-        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, from.frameBufferId);
-        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, to);
-        GL30.glBlitFramebuffer(0, 0, from.width, from.height,
-                0, 0, from.width, from.height,
-                GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
-        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, currentRead);
-        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, currentDraw);
+        to.copyDepthFrom(from);
     }
     
     public static BufferBuilder beginWithRenderPipeline(RenderPipeline pipeline){

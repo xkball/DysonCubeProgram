@@ -1,9 +1,9 @@
 #version 150
 
-in vec3 Position;
+#moj_import <minecraft:dynamictransforms.glsl>
+#moj_import <minecraft:projection.glsl>
 
-uniform mat4 ModelViewMat;
-uniform mat4 ProjMat;
+in vec3 Position;
 
 out vec3 pos;
 

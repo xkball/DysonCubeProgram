@@ -2,9 +2,13 @@
 
 //https://github.com/USS-Shenzhou/MadParticle/blob/temp-bloom/src/main/resources/assets/madparticle/shaders/core/down_sampler.fsh
 uniform sampler2D DiffuseSampler;
-uniform vec2 OutSize;
-uniform int Radius;
-uniform vec2 BlurDir;
+
+layout(std140) uniform DownSampler{
+    float Factor;
+    int Radius;
+    vec2 BlurDir;
+    vec2 OutSize;
+};
 
 in vec2 texCoord;
 out vec4 fragColor;

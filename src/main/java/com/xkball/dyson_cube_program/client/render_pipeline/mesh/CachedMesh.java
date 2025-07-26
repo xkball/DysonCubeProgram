@@ -35,6 +35,7 @@ public class CachedMesh implements ICloseOnExit<CachedMesh> {
     public final Supplier<MeshData> initFunc;
     
     private volatile int indexCount = -1;
+    private boolean sequentialIndexBuffer = false;
     @Nullable
     private VertexFormat.IndexType indexType;
     
@@ -62,7 +63,7 @@ public class CachedMesh implements ICloseOnExit<CachedMesh> {
         this.initFunc = initFunc;
     }
     
-    private void checkInit(){
+    public void checkInit(){
         if(indexCount == -1){
             synchronized (this){
                 if(indexCount == -1){
@@ -74,17 +75,15 @@ public class CachedMesh implements ICloseOnExit<CachedMesh> {
     
     private void init(){
         try(var mesh = initFunc.get()) {
-            this.vertexBuffer = ClientUtils.getGpuDevice().createBuffer(() -> name + "mesh vertex buffer",GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,mesh.vertexBuffer());
+            this.vertexBuffer = ClientUtils.getGpuDevice().createBuffer(() -> name + "mesh vertex buffer",GpuBuffer.USAGE_VERTEX ,mesh.vertexBuffer());
             var state = mesh.drawState();
             this.indexCount = state.indexCount();
+            this.indexType = state.indexType();
             if(mesh.indexBuffer() == null){
-                var indices = RenderSystem.getSequentialBuffer(mode);
-                this.indexBuffer = indices.getBuffer(indexCount);
-                this.indexType = indices.type();
+                this.sequentialIndexBuffer = true;
             }
             else {
-                this.indexBuffer = ClientUtils.getGpuDevice().createBuffer(() -> name + "mesh index buffer", GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST, Objects.requireNonNull(mesh.indexBuffer()));
-                this.indexType = state.indexType();
+                this.indexBuffer = ClientUtils.getGpuDevice().createBuffer(() -> name + "mesh index buffer", GpuBuffer.USAGE_INDEX , Objects.requireNonNull(mesh.indexBuffer()));
             }
         }
     }
@@ -123,6 +122,9 @@ public class CachedMesh implements ICloseOnExit<CachedMesh> {
     
     public GpuBuffer getIndexBuffer(){
         checkInit();
+        if(sequentialIndexBuffer){
+            return RenderSystem.getSequentialBuffer(mode).getBuffer(indexCount);
+        }
         //noinspection DataFlowIssue
         return indexBuffer;
     }
