@@ -84,7 +84,7 @@ public class TheSunRenderer {
     }
     
     public static void drawSunAt(PoseStack poseStack, Vector3f center, int color){
-        DCPPostProcesses.BLOOM.bindAndClear(true);
+        DCPPostProcesses.BLOOM.bindAndClear(false);
         TheSunRenderer.contextColor = color;
         TheSunRenderer.setRenderingCenter(center);
         DCPUniforms.THE_SUN_UNIFORM.update();
@@ -112,7 +112,7 @@ public class TheSunRenderer {
         TheSunRenderer.RING_MESH.render(poseStack);
         poseStack.popPose();
 
-        DCPPostProcesses.BLOOM.applyAndUnbind(true);
+        DCPPostProcesses.BLOOM.applyAndUnbind(false);
     }
     
     public static int getContextColor() {

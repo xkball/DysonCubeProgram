@@ -14,8 +14,6 @@ import com.xkball.dyson_cube_program.utils.math.Quad;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
@@ -38,9 +36,15 @@ public class ClientUtils {
     }
     
     public static void clear(RenderTarget target){
-        getCommandEncoder().clearColorTexture(Objects.requireNonNull(target.getColorTexture()),0);
-        if(target.useDepth){
-            getCommandEncoder().clearDepthTexture(Objects.requireNonNull(target.getDepthTexture()),1d);
+        clear(target, true);
+    }
+    
+    public static void clear(RenderTarget target, boolean clearDepth){
+        if(target.useDepth && clearDepth){
+            getCommandEncoder().clearColorAndDepthTextures(Objects.requireNonNull(target.getColorTexture()),0,Objects.requireNonNull(target.getDepthTexture()),1d);
+        }
+        else {
+            getCommandEncoder().clearColorTexture(Objects.requireNonNull(target.getColorTexture()),0);
         }
     }
     

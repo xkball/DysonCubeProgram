@@ -9,7 +9,8 @@
   "client": [
     "MixinGameRenderer",
     "MixinGlRenderPass",
-    "MixinLevelRenderer"
+    "MixinLevelRenderer",
+    "MixinSTD140Builder"
   ],
   "injectors": {
     "defaultRequire": 1

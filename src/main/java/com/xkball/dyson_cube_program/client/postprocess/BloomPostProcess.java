@@ -2,14 +2,11 @@ package com.xkball.dyson_cube_program.client.postprocess;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
-import com.mojang.blaze3d.textures.GpuTextureView;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
-
-import java.util.Objects;
 
 @NonNullByDefault
 public class BloomPostProcess extends AbstractPostProcess {
@@ -57,34 +54,28 @@ public class BloomPostProcess extends AbstractPostProcess {
     }
     
     @Override
-    public void apply(GpuTextureView input) {
-        ClientUtils.clear(composite);
-        for(var i = 0; i < samplerDepth; i++) {
-            ClientUtils.clear(downSamplersH[i]);
-            ClientUtils.clear(downSamplersV[i]);
-        }
-        
+    public void apply(RenderTarget input) {
         var src = input;
         
         for(var i = 0; i < samplerDepth; i++) {
             var h = downSamplersH[i];
             var v = downSamplersV[i];
-            GpuTextureView finalSrc = src;
+            RenderTarget finalSrc = src;
             this.updateDownSamplerUniform(i,true);
-            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,h, (pass) -> pass.bindSampler("DiffuseSampler", finalSrc));
+            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,h, (pass) -> pass.bindSampler("DiffuseSampler", finalSrc.getColorTextureView()));
             this.updateDownSamplerUniform(i,false);
             this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,v,(pass) -> pass.bindSampler("DiffuseSampler", h.getColorTextureView()));
-            src = h.getColorTextureView();
+            src = h;
         }
         
-        var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
         this.processOnce(DCPRenderPipelines.BLOOM_COMPOSITE,composite,(pass) -> {
             pass.bindSampler("DiffuseSampler",swap.getColorTextureView());
-            pass.bindSampler("HighLight",input);
+            pass.bindSampler("HighLight",input.getColorTextureView());
             for(var i = 0; i < samplerDepth; i++) {
                 pass.bindSampler("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView());
             }
         });
+        var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
         ClientUtils.copyFrameBufferColorTo(composite,mainBuffer);
     }
     
@@ -98,20 +89,19 @@ public class BloomPostProcess extends AbstractPostProcess {
     }
     
     public void bindAndClear(boolean copyDepth) {
-        ClientUtils.clear(this.swap);
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
         ClientUtils.copyFrameBufferColorTo(mainBuffer,this.swap);
         if(copyDepth) {
             ClientUtils.copyFrameBufferDepthTo(mainBuffer,this.swap);
         }
-        ClientUtils.clear(mainBuffer);
+        ClientUtils.clear(mainBuffer,false);
     }
     
     public void applyAndUnbind(boolean copyDepth) {
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
-        this.apply(Objects.requireNonNull(mainBuffer.getColorTextureView()));
+        this.apply(mainBuffer);
         if(copyDepth) {
-            ClientUtils.copyFrameBufferDepthTo(this.swap, Minecraft.getInstance().getMainRenderTarget());
+            ClientUtils.copyFrameBufferDepthTo(this.swap, mainBuffer);
         }
     }
     
