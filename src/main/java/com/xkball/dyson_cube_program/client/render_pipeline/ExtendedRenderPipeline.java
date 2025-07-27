@@ -10,7 +10,6 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.textures.TextureFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
-import com.xkball.dyson_cube_program.api.client.UpdateWhen;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.UpdatableUBO;
 import net.minecraft.client.renderer.ShaderDefines;
 import net.minecraft.resources.ResourceLocation;
@@ -26,7 +25,8 @@ import java.util.Optional;
 @NonNullByDefault
 public class ExtendedRenderPipeline extends RenderPipeline {
     
-    private final Map<String, UpdatableUBO> UBOBindings;
+    public final Map<String, UpdatableUBO> UBOBindings;
+    public final List<String> SSBOs;
     
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public ExtendedRenderPipeline(ResourceLocation location, ResourceLocation vertexShader,
@@ -39,9 +39,10 @@ public class ExtendedRenderPipeline extends RenderPipeline {
                                      VertexFormat.Mode vertexFormatMode,
                                      float depthBiasScaleFactor, float depthBiasConstant,
                                      int sortKey, Optional<StencilTest> stencilTest,
-                                     Map<String, UpdatableUBO> UBOBindings) {
+                                     Map<String, UpdatableUBO> UBOBindings, List<String> SSBOs) {
         super(location, vertexShader, fragmentShader, shaderDefines, samplers, uniforms, blendFunction, depthTestFunction, polygonMode, cull, writeColor, writeAlpha, writeDepth, colorLogic, vertexFormat, vertexFormatMode, depthBiasScaleFactor, depthBiasConstant, sortKey, stencilTest);
         this.UBOBindings = UBOBindings;
+        this.SSBOs = SSBOs;
     }
     
     public void apply(RenderPass renderPass) {
@@ -63,6 +64,7 @@ public class ExtendedRenderPipeline extends RenderPipeline {
     public static class Builder extends RenderPipeline.Builder {
         
         private final Map<String, UpdatableUBO> UBOBindings = new HashMap<>();
+        private final List<String> SSBOs = new ArrayList<>();
         
         public Builder(){
             super();
@@ -70,6 +72,11 @@ public class ExtendedRenderPipeline extends RenderPipeline {
         
         public Builder bindUniform(String uniform, UpdatableUBO ubo){
             this.UBOBindings.put(uniform, ubo);
+            return this;
+        }
+        
+        public Builder withSSBO(String name){
+            this.SSBOs.add(name);
             return this;
         }
         
@@ -291,7 +298,8 @@ public class ExtendedRenderPipeline extends RenderPipeline {
                         this.depthBiasConstant,
                         nextPipelineSortKey++,
                         this.stencilTest,
-                        this.UBOBindings
+                        this.UBOBindings,
+                        this.SSBOs
                 );
             }
         }

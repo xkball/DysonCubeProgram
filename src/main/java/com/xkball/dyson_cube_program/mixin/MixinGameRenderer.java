@@ -15,7 +15,7 @@ public class MixinGameRenderer {
     
     @Inject(method = "renderLevel", at = @At("HEAD"))
     public void beforeRenderLevel(DeltaTracker deltaTracker, CallbackInfo ci){
-        for(var up : ClientRenderObjects.everyFrame){
+        for(var up : ClientRenderObjects.INSTANCE.everyFrame){
             up.update();
         }
     }

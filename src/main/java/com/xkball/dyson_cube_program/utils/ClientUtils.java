@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -22,6 +23,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
 
 public class ClientUtils {
     
@@ -33,6 +36,13 @@ public class ClientUtils {
     
     public static CommandEncoder getCommandEncoder(){
         return RenderSystem.getDevice().createCommandEncoder();
+    }
+    
+    public static RenderPass createRenderPass(String name){
+        var colorTarget = Minecraft.getInstance().getMainRenderTarget().getColorTextureView();
+        var depthTarget = Minecraft.getInstance().getMainRenderTarget().getDepthTextureView();
+        //noinspection DataFlowIssue
+        return getCommandEncoder().createRenderPass(() -> name, colorTarget, OptionalInt.empty(), depthTarget, OptionalDouble.empty());
     }
     
     public static void clear(RenderTarget target){

@@ -42,12 +42,12 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
         this.updateFunc = new BuildUniformBlock(updateFunc);
         this.updateWhen = updateWhen;
         this.buffer = new DynamicUniformStorage<>(name,size,2);
-        ClientRenderObjects.addEndFrameListener(this);
+        ClientRenderObjects.INSTANCE.addEndFrameListener(this);
         if (closeOnExit) {
-            ClientRenderObjects.addCloseOnExit(this);
+            ClientRenderObjects.INSTANCE.addCloseOnExit(this);
         }
         if(updateWhen == UpdateWhen.EveryFrame){
-            ClientRenderObjects.addEveryFrameListener(this);
+            ClientRenderObjects.INSTANCE.addEveryFrameListener(this);
         }
     }
     

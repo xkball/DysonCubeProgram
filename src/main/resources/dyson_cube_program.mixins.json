@@ -5,11 +5,17 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "shoot_screen.refmap.json",
   "mixins": [
+    "MixinValidationRenderPass"
   ],
   "client": [
     "MixinGameRenderer",
+    "MixinGLCommandEncoder",
+    "MixinGLDevice",
+    "MixinGLProgram",
     "MixinGlRenderPass",
     "MixinLevelRenderer",
+    "MixinRenderPass",
+    "MixinRenderSystem",
     "MixinSTD140Builder"
   ],
   "injectors": {

@@ -6,7 +6,7 @@ public interface ICloseOnExit<T extends ICloseOnExit<T>> extends AutoCloseable {
     
     @SuppressWarnings("unchecked")
     default T setCloseOnExit(){
-        ClientRenderObjects.addCloseOnExit(this);
+        ClientRenderObjects.INSTANCE.addCloseOnExit(this);
         return (T) this;
     }
 }

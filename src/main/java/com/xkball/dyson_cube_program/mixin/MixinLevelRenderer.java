@@ -18,7 +18,7 @@ public class MixinLevelRenderer {
     
     @Inject(method = "endFrame",at = @At("RETURN"))
     public void onEndFrame(CallbackInfo ci){
-        for(var ef : ClientRenderObjects.endFrame){
+        for(var ef : ClientRenderObjects.INSTANCE.endFrame){
             ef.endFrame();
         }
     }

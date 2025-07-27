@@ -1,46 +1,55 @@
 package com.xkball.dyson_cube_program.client;
 
+import com.mojang.blaze3d.opengl.DirectStateAccess;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.xkball.dyson_cube_program.api.client.IEndFrameListener;
 import com.xkball.dyson_cube_program.api.client.IUpdatable;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.neoforged.neoforge.client.event.lifecycle.ClientStoppedEvent;
+import org.lwjgl.opengl.GL;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class ClientRenderObjects {
     
-    public static final List<AutoCloseable> closeOnExit = new ArrayList<>();
-    public static final List<IEndFrameListener> endFrame = new ArrayList<>();
-    public static final List<IUpdatable> everyFrame = new ArrayList<>();
+    public final DirectStateAccess directStateAccess = DirectStateAccess.create(GL.getCapabilities(), new HashSet<>());
+    public final List<AutoCloseable> closeOnExit = new ArrayList<>();
+    public final List<IEndFrameListener> endFrame = new ArrayList<>();
+    public final List<IUpdatable> everyFrame = new ArrayList<>();
     
-    public static void addCloseOnExit(AutoCloseable obj) {
-        synchronized (closeOnExit) {
-            closeOnExit.add(obj);
-        }
+    public static ClientRenderObjects INSTANCE;
+    
+    public ClientRenderObjects() {
+    
     }
     
-    public static void addEndFrameListener(IEndFrameListener listener) {
-        synchronized (endFrame) {
-            endFrame.add(listener);
-        }
+    public void addCloseOnExit(AutoCloseable obj) {
+        RenderSystem.assertOnRenderThread();
+        closeOnExit.add(obj);
+        
     }
     
-    public static void addEveryFrameListener(IUpdatable obj) {
-        synchronized (everyFrame) {
-            everyFrame.add(obj);
-        }
+    public void addEndFrameListener(IEndFrameListener listener) {
+        RenderSystem.assertOnRenderThread();
+        endFrame.add(listener);
+    }
+    
+    public void addEveryFrameListener(IUpdatable obj) {
+        RenderSystem.assertOnRenderThread();
+        everyFrame.add(obj);
     }
     
     @SubscribeEventEnhanced
     public static void onGameExit(ClientStoppedEvent event) {
         try {
-            for(var closeable : closeOnExit) {
+            for(var closeable : INSTANCE.closeOnExit) {
                 closeable.close();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        closeOnExit.clear();
+        INSTANCE.closeOnExit.clear();
     }
 }

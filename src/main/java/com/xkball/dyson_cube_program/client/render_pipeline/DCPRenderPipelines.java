@@ -12,6 +12,14 @@ import net.minecraft.client.renderer.RenderPipelines;
 
 public class DCPRenderPipelines {
     
+    public static final ExtendedRenderPipeline POSITION_COLOR_INSTANCED = ExtendedRenderPipeline.extendedbuilder()
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+            .withLocation(VanillaUtils.modRL("position_color_instanced"))
+            .withVertexShader(VanillaUtils.modRL("core/position_color_instanced"))
+            .withFragmentShader("core/position_color")
+            .withSSBO("InstanceTransform")
+            .buildExtended();
+    
     public static final RenderPipeline DEBUG_LINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation(VanillaUtils.modRL("pipeline/debug_line"))
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.DEBUG_LINES)
