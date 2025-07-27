@@ -6,15 +6,12 @@ import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.systems.ScissorState;
 import com.mojang.blaze3d.textures.GpuTextureView;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector4f;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
     
@@ -24,7 +21,7 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
         super(name, renderSettings);
     }
     
-    public MeshBundleWithRenderType(String name, RenderType renderSettings, List<Pair<Consumer<PoseStack>, CachedMesh>> meshes) {
+    public MeshBundleWithRenderType(String name, RenderType renderSettings, List<MeshBlock> meshes) {
         super(name, renderSettings, meshes);
     }
     

@@ -8,8 +8,8 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.client.ICloseOnExit;
+import com.xkball.dyson_cube_program.api.client.mixin.IExtendedRenderPass;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import net.minecraft.client.renderer.DynamicUniforms;
 import org.joml.Matrix4f;
@@ -28,14 +28,14 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     
     protected final String name;
     protected final T renderSettings;
-    protected final List<Pair<Consumer<PoseStack>,CachedMesh>> meshes = new ArrayList<>();
+    protected final List<MeshBlock> meshes = new ArrayList<>();
     
     public MeshBundle(String name, T renderSettings) {
         this.name = name;
         this.renderSettings = renderSettings;
     }
     
-    public MeshBundle(String name, T renderSettings, List<Pair<Consumer<PoseStack>,CachedMesh>> meshes) {
+    public MeshBundle(String name, T renderSettings, List<MeshBlock> meshes) {
         this.name = name;
         this.renderSettings = renderSettings;
         this.meshes.addAll(meshes);
@@ -54,37 +54,49 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     public abstract VertexFormat.Mode getVertexFormatMode();
     public abstract VertexFormat getVertexFormat();
     
+    public MeshBundle<T> append(MeshBlock meshBlock){
+        this.meshes.add(meshBlock);
+        return this;
+    }
+    
     public MeshBundle<T> append(Supplier<MeshData> mesh){
-        this.meshes.add(Pair.of(p ->{},new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
+        this.meshes.add(new MeshBlock(p ->{},InstanceInfo.EMPTY,new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
         return this;
     }
     
     public MeshBundle<T> append(Consumer<BufferBuilder> mesh){
-        this.meshes.add(Pair.of(p ->{},new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
+        this.meshes.add(new MeshBlock(p ->{},InstanceInfo.EMPTY,new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
         return this;
     }
     
     public MeshBundle<T> append(Supplier<MeshData> mesh, Consumer<PoseStack> poseStackSetup){
-        this.meshes.add(Pair.of(poseStackSetup,new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
+        this.meshes.add(new MeshBlock(poseStackSetup,InstanceInfo.EMPTY,new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
         return this;
     }
     
     public MeshBundle<T> append(Consumer<BufferBuilder> mesh, Consumer<PoseStack> poseStackSetup){
-        this.meshes.add(Pair.of(poseStackSetup,new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
+        this.meshes.add(new MeshBlock(poseStackSetup,InstanceInfo.EMPTY,new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), mesh)));
         return this;
     }
     
     public MeshBundle<T> appendImmediately(MeshData mesh){
         var meshCache = new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), () -> mesh);
         meshCache.checkInit();
-        this.meshes.add(Pair.of(p -> {}, meshCache));
+        this.meshes.add(new MeshBlock(p -> {}, InstanceInfo.EMPTY,meshCache));
         return this;
     }
     
     public MeshBundle<T> appendImmediately(MeshData mesh, Consumer<PoseStack> poseStackSetup){
         var meshCache = new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), () -> mesh);
         meshCache.checkInit();
-        this.meshes.add(Pair.of(poseStackSetup, meshCache));
+        this.meshes.add(new MeshBlock(poseStackSetup, InstanceInfo.EMPTY,meshCache));
+        return this;
+    }
+    
+    public MeshBundle<T> appendImmediately(MeshData mesh, Consumer<PoseStack> poseStackSetup, InstanceInfo instanceInfo){
+        var meshCache = new CachedMesh(this.name + "_" + this.meshes.size(), this.getVertexFormatMode(), this.getVertexFormat(), () -> mesh);
+        meshCache.checkInit();
+        this.meshes.add(new MeshBlock(poseStackSetup, instanceInfo,meshCache));
         return this;
     }
     
@@ -97,7 +109,7 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
         var transformList = new DynamicUniforms.Transform[this.meshes.size()];
         for(int i = 0; i < this.meshes.size(); i++){
             poseStack.pushPose();
-            var setup = meshes.get(i).getFirst();
+            var setup = meshes.get(i).poseSetup;
             setup.accept(poseStack);
             var modelView = RenderSystem.getModelViewStack().mul(poseStack.last().pose(), new Matrix4f());
             transformList[i] = new DynamicUniforms.Transform(modelView, new Vector4f(1,1,1,1), new Vector3f(), new Matrix4f(), 0f);
@@ -111,11 +123,17 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
             RenderSystem.bindDefaultUniforms(renderpass);
             this.setupRenderPass(renderpass);
             for(int i = 0; i < this.meshes.size(); i++) {
-                var mesh = meshes.get(i).getSecond();
+                var instanceInfo = meshes.get(i).instanceInfo;
+                if(instanceInfo.instanceCount() > 1){
+                    assert instanceInfo.ssboName() != null;
+                    assert instanceInfo.ssboBuffer() != null;
+                    IExtendedRenderPass.cast(renderpass).setSSBO(instanceInfo.ssboName(), instanceInfo.ssboBuffer());
+                }
+                var mesh = meshes.get(i).mesh;
                 renderpass.setUniform("DynamicTransforms", transformBuffers[i]);
                 renderpass.setVertexBuffer(0, mesh.getVertexBuffer());
                 renderpass.setIndexBuffer(mesh.getIndexBuffer(),mesh.getIndexType());
-                renderpass.drawIndexed(0,0, mesh.getIndexCount(), 1);
+                renderpass.drawIndexed(0,0, mesh.getIndexCount(), instanceInfo.instanceCount());
                 
             }
             this.endRenderPass(renderpass);
@@ -125,7 +143,14 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     @Override
     public void close() {
         for(var mesh : meshes){
-            mesh.getSecond().close();
+            mesh.mesh.close();
+            if (mesh.instanceInfo.ssboBuffer() != null) {
+                mesh.instanceInfo.ssboBuffer().buffer().close();
+            }
         }
+    }
+    
+    public record MeshBlock(Consumer<PoseStack> poseSetup, InstanceInfo instanceInfo, CachedMesh mesh) {
+    
     }
 }

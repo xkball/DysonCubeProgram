@@ -1,9 +1,9 @@
 package com.xkball.dyson_cube_program.mixin;
 
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.opengl.GlRenderPipeline;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedRenderPass;
-import com.xkball.dyson_cube_program.client.render_pipeline.uniform.SimpleSSBO;
 import org.spongepowered.asm.mixin.Mixin;
 
 import java.util.Map;
@@ -12,10 +12,11 @@ import java.util.Map;
 public interface MixinRenderPass extends IExtendedRenderPass {
     
     @Override
-    default void dysonCubeProgram$setSSBO(String name, SimpleSSBO ssbo) {}
+    @SuppressWarnings("AddedMixinMembersNamePattern")
+    default void setSSBO(String name, GpuBufferSlice ssbo) {}
     
     @Override
-    default Map<String, SimpleSSBO> dysonCubeProgram$getSSBOs(){
+    default Map<String, GpuBufferSlice> dysonCubeProgram$getSSBOs(){
         return null;
     }
     

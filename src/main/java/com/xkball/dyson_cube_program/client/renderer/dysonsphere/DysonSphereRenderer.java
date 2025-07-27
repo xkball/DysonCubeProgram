@@ -5,8 +5,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
+import com.xkball.dyson_cube_program.api.client.ISTD140Writer;
 import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
 import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
+import com.xkball.dyson_cube_program.client.render_pipeline.TransformMat;
+import com.xkball.dyson_cube_program.client.render_pipeline.mesh.InstanceInfo;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundleWithRenderPipeline;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
@@ -17,10 +20,12 @@ import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -41,6 +46,7 @@ public class DysonSphereRenderer {
             entry.getValue().close();
         }
         meshes.clear();
+        meshes.put(DCPRenderPipelines.POSITION_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_color_instanced", DCPRenderPipelines.POSITION_COLOR_INSTANCED));
         meshes.put(RenderPipelines.DEBUG_QUADS, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",RenderPipelines.DEBUG_QUADS));
         meshes.put(DCPRenderPipelines.DEBUG_LINE, new MeshBundleWithRenderPipeline("dyson_sphere_debug_lines",DCPRenderPipelines.DEBUG_LINE));
         var elements = data.type().elementTypes;
@@ -81,10 +87,21 @@ public class DysonSphereRenderer {
         var setup = rotateOrbit(orbit);
         
         var modelManager = Minecraft.getInstance().getModelManager();
+        var transformList = new ArrayList<TransformMat>();
         var nodeModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_NODE_KEY);
         if(nodeModel != null){
             var nodeBuilder = ClientUtils.beginWithRenderPipeline(RenderPipelines.DEBUG_QUADS);
             var _quads = nodeModel.getAll();
+            for(var quad : _quads){
+                var aint = quad.vertices();
+                for (int i = 0; i < 4; i++) {
+                    var x = Float.intBitsToFloat(aint[i*8]);
+                    var y = Float.intBitsToFloat(aint[i*8+1]);
+                    var z = Float.intBitsToFloat(aint[i*8+2]);
+                    nodeBuilder.addVertex(x,y,z).setColor(-1);
+                }
+                
+            }
             var poseStack = new PoseStack();
             for(var node : nodes.entries()){
                 poseStack.pushPose();
@@ -95,21 +112,15 @@ public class DysonSphereRenderer {
                 poseStack.translate(node.value().pos().x,node.value().pos().y,node.value().pos().z);
                 poseStack.scale(400,400,400);
                 poseStack.mulPose(Axis.of(axis).rotation((float) theta));
-                for(var quad : _quads){
-                    var aint = quad.vertices();
-                    for (int i = 0; i < 4; i++) {
-                        var x = Float.intBitsToFloat(aint[i*8]);
-                        var y = Float.intBitsToFloat(aint[i*8+1]);
-                        var z = Float.intBitsToFloat(aint[i*8+2]);
-                        nodeBuilder.addVertex(poseStack.last(),x,y,z).setColor(-1);
-                    }
-                    
-                }
+                transformList.add(new TransformMat(new Matrix4f(poseStack.last().pose())));
                 poseStack.popPose();
             }
             if(!nodes.isEmpty()) {
                 var mesh = nodeBuilder.buildOrThrow();
-                meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.appendImmediately(mesh,setup));
+                var buffer = ISTD140Writer.batchBuildStd140Block(transformList);
+                var instanceInfo = new InstanceInfo(nodes.size(),"InstanceTransform",buffer.slice());
+                meshes.computeIfPresent(DCPRenderPipelines.POSITION_COLOR_INSTANCED,
+                        (k,v)-> v.appendImmediately(mesh,setup,instanceInfo));
             }
         }
        

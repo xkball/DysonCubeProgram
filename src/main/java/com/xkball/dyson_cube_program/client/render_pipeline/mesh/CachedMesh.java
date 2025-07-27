@@ -8,7 +8,6 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ICloseOnExit;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
@@ -107,11 +106,11 @@ public class CachedMesh implements ICloseOnExit<CachedMesh> {
     }
     
     public MeshBundle<RenderPipeline> toMeshBundle(RenderPipeline pipeline){
-        return new MeshBundleWithRenderPipeline(name, pipeline, List.of(Pair.of(p -> {},this)));
+        return new MeshBundleWithRenderPipeline(name, pipeline, List.of(new MeshBundle.MeshBlock(p -> {},InstanceInfo.EMPTY,this)));
     }
     
     public MeshBundle<RenderType> toMeshBundle(RenderType renderType){
-        return new MeshBundleWithRenderType(name, renderType, List.of(Pair.of(p -> {},this)));
+        return new MeshBundleWithRenderType(name, renderType, List.of(new MeshBundle.MeshBlock(p -> {},InstanceInfo.EMPTY,this)));
     }
     
     public GpuBuffer getVertexBuffer(){
