@@ -17,6 +17,18 @@ public class DCPRenderPipelines {
             .withLocation(VanillaUtils.modRL("position_color_instanced"))
             .withVertexShader(VanillaUtils.modRL("core/position_color_instanced"))
             .withFragmentShader("core/position_color")
+            .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+            .withSSBO("InstanceTransform")
+            .buildExtended();
+    
+    public static final ExtendedRenderPipeline POSITION_TEX_COLOR_INSTANCED = ExtendedRenderPipeline.extendedbuilder()
+            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+            .withLocation(VanillaUtils.modRL("position_tex_color_instanced"))
+            .withVertexShader(VanillaUtils.modRL("core/position_tex_color_instanced"))
+            .withFragmentShader("core/position_tex_color")
+            .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
             .withSSBO("InstanceTransform")
             .buildExtended();
     

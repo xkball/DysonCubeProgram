@@ -41,6 +41,7 @@ public class ClientEvent {
         event.registerPipeline(DCPRenderPipelines.BLOOM_DOWN_SAMPLER);
         event.registerPipeline(DCPRenderPipelines.BLOOM_COMPOSITE);
         event.registerPipeline(DCPRenderPipelines.POSITION_COLOR_INSTANCED);
+        event.registerPipeline(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED);
     }
     
 }

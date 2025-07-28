@@ -21,6 +21,7 @@ import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -82,27 +83,17 @@ public class DysonSphereRenderer {
     }
     
     private void renderSingleLayer(@Nullable DysonOrbitData orbit, DysonSphereLayerData layer){
-        var defaultColor = ColorUtils.getColor(8,19,23,255);
+        var defaultColor = ColorUtils.getColor(73,140,163,255);
         var nodes = IDGetter.toMap(layer.nodePool());
         var setup = rotateOrbit(orbit);
-        
         var modelManager = Minecraft.getInstance().getModelManager();
-        var transformList = new ArrayList<TransformMat>();
+        
         var nodeModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_NODE_KEY);
         if(nodeModel != null){
+            var transformList = new ArrayList<TransformMat>();
             var nodeBuilder = ClientUtils.beginWithRenderPipeline(RenderPipelines.DEBUG_QUADS);
-            var _quads = nodeModel.getAll();
-            for(var quad : _quads){
-                var aint = quad.vertices();
-                for (int i = 0; i < 4; i++) {
-                    var x = Float.intBitsToFloat(aint[i*8]);
-                    var y = Float.intBitsToFloat(aint[i*8+1]);
-                    var z = Float.intBitsToFloat(aint[i*8+2]);
-                    nodeBuilder.addVertex(x,y,z).setColor(-1);
-                }
-                
-            }
             var poseStack = new PoseStack();
+            ClientUtils.putModelToBuffer(poseStack,nodeBuilder,nodeModel.getAll(),defaultColor);
             for(var node : nodes.entries()){
                 poseStack.pushPose();
                 var u = new Vector3f(0,1,0);
@@ -111,7 +102,7 @@ public class DysonSphereRenderer {
                 var theta = Math.acos(u.dot(d));
                 poseStack.translate(node.value().pos().x,node.value().pos().y,node.value().pos().z);
                 poseStack.scale(400,400,400);
-                poseStack.mulPose(Axis.of(axis).rotation((float) theta));
+                poseStack.mulPose(new Quaternionf().rotationAxis((float) theta,axis));
                 transformList.add(new TransformMat(new Matrix4f(poseStack.last().pose())));
                 poseStack.popPose();
             }
@@ -124,21 +115,24 @@ public class DysonSphereRenderer {
             }
         }
        
-        var lineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
-        var frames = layer.framePool().stream().filter(Objects::nonNull).toList();
-        for(var frame : frames){
-            var nodeA = nodes.get(frame.nodeAID());
-            var nodeB = nodes.get(frame.nodeBID());
-            var color = ColorUtils.abgrToArgb(frame.color());
-            if(color == 0) color = defaultColor;
-            lineBuilder.addVertex(nodeA.pos()).setColor(color);
-            lineBuilder.addVertex(nodeB.pos()).setColor(color);
+        var frameModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_FRAME_KEY);
+        if(frameModel != null){
+            var lineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
+            var frames = layer.framePool().stream().filter(Objects::nonNull).toList();
+            for(var frame : frames){
+                var nodeA = nodes.get(frame.nodeAID());
+                var nodeB = nodes.get(frame.nodeBID());
+                var color = ColorUtils.abgrToArgb(frame.color());
+                if(color == 0) color = defaultColor;
+                lineBuilder.addVertex(nodeA.pos()).setColor(color);
+                lineBuilder.addVertex(nodeB.pos()).setColor(color);
+            }
+            if(!frames.isEmpty()) {
+                var mesh = lineBuilder.buildOrThrow();
+                meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,setup));
+            }
         }
-        if(!frames.isEmpty()) {
-            var mesh = lineBuilder.buildOrThrow();
-            meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,setup));
-        }
-
+        
         var shellBuilder = ClientUtils.beginWithRenderPipeline(RenderPipelines.DEBUG_QUADS);
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
         for(var shell : shells){

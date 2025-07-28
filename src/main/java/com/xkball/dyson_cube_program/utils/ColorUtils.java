@@ -1,15 +1,12 @@
 package com.xkball.dyson_cube_program.utils;
 
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 public class ColorUtils {
     //irrelevant vanilla(笑)
     public static int getColor(int r, int g, int b, int a) {
         return a << 24 | r << 16 | g << 8 | b;
-    }
-    
-    public static Vector3f rgbColor(int color){
-        return new Vector3f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f);
     }
     
     public static int parseColorHEX(String color) throws IllegalArgumentException {
@@ -96,5 +93,16 @@ public class ColorUtils {
     
     public static int editA(int argb, int a){
         return (a << 24) | (argb & 0x00FFFFFF);
+    }
+    
+    public static class Vectorization{
+        
+        public static Vector3f rgbColor(int color){
+            return new Vector3f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f);
+        }
+        
+        public static Vector4f rgbaColor(int color){
+            return new Vector4f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f,(color >> 24 & 0xFF) / 255f);
+        }
     }
 }

@@ -13,7 +13,7 @@ public class DCPUniforms {
             .closeOnExit()
             .putVec3("RenderDir", TheSunRenderer::getRenderDirection)
             .putFloat("ClientTime", ClientUtils::clientTickWithPartialTick)
-            .putVec3("Color", () -> ColorUtils.rgbColor(TheSunRenderer.getContextColor()))
+            .putVec3("Color", () -> ColorUtils.Vectorization.rgbColor(TheSunRenderer.getContextColor()))
             .build();
     
     public static final UpdatableUBO BLOOM_DOWN_SAMPLER_UNIFORM = new UpdatableUBO.UBOBuilder("bloom_down_sampler")

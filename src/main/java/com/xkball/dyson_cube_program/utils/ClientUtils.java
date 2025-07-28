@@ -13,8 +13,11 @@ import com.mojang.logging.LogUtils;
 import com.xkball.dyson_cube_program.client.ClientEvent;
 import com.xkball.dyson_cube_program.utils.math.Quad;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
@@ -83,6 +86,13 @@ public class ClientUtils {
     
     public static float clientTickWithPartialTick(){
         return ClientEvent.tickCount + Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true);
+    }
+    
+    public static void putModelToBuffer(PoseStack poseStack, BufferBuilder builder, Collection<BakedQuad> quads, int color){
+        var color_ = ColorUtils.Vectorization.rgbaColor(color);
+        for(var quad : quads){
+            builder.putBulkData(poseStack.last(),quad,color_.x,color_.y,color_.z,color_.w, LightTexture.pack(15,15), OverlayTexture.NO_OVERLAY);
+        }
     }
     
     public static List<Quad> earClipping(List<Vector3f> points){
