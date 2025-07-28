@@ -8,10 +8,11 @@ import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ISTD140Writer;
 import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
 import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
-import com.xkball.dyson_cube_program.client.render_pipeline.TransformMat;
+import com.xkball.dyson_cube_program.client.render_pipeline.uniform.TransMat;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.InstanceInfo;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundleWithRenderPipeline;
+import com.xkball.dyson_cube_program.client.render_pipeline.uniform.TransMatColor;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
@@ -20,6 +21,7 @@ import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.util.Mth;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -87,23 +89,20 @@ public class DysonSphereRenderer {
         var nodes = IDGetter.toMap(layer.nodePool());
         var setup = rotateOrbit(orbit);
         var modelManager = Minecraft.getInstance().getModelManager();
+        var poseStack = new PoseStack();
         
         var nodeModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_NODE_KEY);
         if(nodeModel != null){
-            var transformList = new ArrayList<TransformMat>();
+            var transformList = new ArrayList<TransMat>();
             var nodeBuilder = ClientUtils.beginWithRenderPipeline(RenderPipelines.DEBUG_QUADS);
-            var poseStack = new PoseStack();
+            
             ClientUtils.putModelToBuffer(poseStack,nodeBuilder,nodeModel.getAll(),defaultColor);
             for(var node : nodes.entries()){
                 poseStack.pushPose();
-                var u = new Vector3f(0,1,0);
-                var d = node.value().pos().negate(new Vector3f()).normalize();
-                var axis = u.cross(d,new Vector3f()).normalize();
-                var theta = Math.acos(u.dot(d));
                 poseStack.translate(node.value().pos().x,node.value().pos().y,node.value().pos().z);
                 poseStack.scale(400,400,400);
-                poseStack.mulPose(new Quaternionf().rotationAxis((float) theta,axis));
-                transformList.add(new TransformMat(new Matrix4f(poseStack.last().pose())));
+                poseStack.mulPose(facingOrigin(node.value().pos()));
+                transformList.add(new TransMat(new Matrix4f(poseStack.last().pose())));
                 poseStack.popPose();
             }
             if(!nodes.isEmpty()) {
@@ -117,19 +116,56 @@ public class DysonSphereRenderer {
        
         var frameModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_FRAME_KEY);
         if(frameModel != null){
-            var lineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
+            var lineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED);
+            var transformList = new ArrayList<TransMatColor>();
+            ClientUtils.putModelToBuffer(poseStack,lineBuilder,frameModel.getAll(),-1);
             var frames = layer.framePool().stream().filter(Objects::nonNull).toList();
+            int count = 0;
             for(var frame : frames){
-                var nodeA = nodes.get(frame.nodeAID());
-                var nodeB = nodes.get(frame.nodeBID());
                 var color = ColorUtils.abgrToArgb(frame.color());
                 if(color == 0) color = defaultColor;
-                lineBuilder.addVertex(nodeA.pos()).setColor(color);
-                lineBuilder.addVertex(nodeB.pos()).setColor(color);
+                var nodeA = nodes.get(frame.nodeAID());
+                var nodeB = nodes.get(frame.nodeBID());
+                var posA = nodeA.pos();
+                var posB = nodeB.pos();
+                var r = (posA.length() + posB.length()) / 2;
+                var cosThetaAB = posA.normalize(new Vector3f()).dot(posB.normalize(new Vector3f()));
+                var thetaAB = Math.toDegrees(Math.acos(cosThetaAB));
+                var n = thetaAB/1.25;
+                var fracN = Mth.frac(n);
+                n = Mth.lfloor(n);
+                float firstAndLastL;
+                if(fracN < 0.5){
+                    firstAndLastL = (float) ((1-fracN) /2);
+                    n = n+2;
+                }
+                else{
+                    firstAndLastL = (float) ((1+fracN) /2);
+                    n = n+1;
+                }
+                count += (int) n;
+                float l = (float) (Math.toRadians(1.25) * r);
+                var normal = posA.cross(posB,new Vector3f()).normalize();
+                float currentL = 0;
+                for (int i = 0; i < n; i++) {
+                    var d = ( i == 0 || i == n - 1) ? firstAndLastL : 1;
+                    currentL += d/2;
+                    var q = new Quaternionf().rotateAxis((float) Math.toRadians(1.25 * currentL),normal);
+                    var p = posA.rotate(q,new Vector3f());
+                    poseStack.pushPose();
+                    poseStack.translate(p.x(),p.y(),p.z());
+                    poseStack.scale(400,400,l*d);
+                    poseStack.mulPose(facingOrigin(p));
+                    transformList.add(new TransMatColor(new Matrix4f(poseStack.last().pose()),ColorUtils.Vectorization.rgbaColor(color)));
+                    poseStack.popPose();
+                    currentL += d/2;
+                }
             }
             if(!frames.isEmpty()) {
                 var mesh = lineBuilder.buildOrThrow();
-                meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,setup));
+                var buffer = ISTD140Writer.batchBuildStd140Block(transformList);
+                var instanceInfo = new InstanceInfo(count,"InstanceTransformColor",buffer.slice());
+                meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,setup,instanceInfo));
             }
         }
         
@@ -156,6 +192,14 @@ public class DysonSphereRenderer {
     
     private void renderSingleSwarm(DysonOrbitData orbit, int sailCount, Vector4f color){
     
+    }
+    
+    private static Quaternionf facingOrigin(Vector3f pos){
+        var u = new Vector3f(0,1,0);
+        var d = pos.negate(new Vector3f()).normalize();
+        var axis = u.cross(d,new Vector3f()).normalize();
+        var theta = Math.acos(u.dot(d));
+        return new Quaternionf().rotationAxis((float) theta,axis);
     }
     
     private static Consumer<PoseStack> rotateOrbit(@Nullable DysonOrbitData orbit){

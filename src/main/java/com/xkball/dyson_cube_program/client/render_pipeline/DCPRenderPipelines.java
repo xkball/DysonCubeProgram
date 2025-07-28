@@ -29,7 +29,7 @@ public class DCPRenderPipelines {
             .withFragmentShader("core/position_tex_color")
             .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
-            .withSSBO("InstanceTransform")
+            .withSSBO("InstanceTransformColor")
             .buildExtended();
     
     public static final RenderPipeline DEBUG_LINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
