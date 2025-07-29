@@ -19,7 +19,7 @@ import org.joml.Vector3f;
 @NonNullByDefault
 public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntityBlockEntity> {
     
-    private final DysonSphereRenderer sphereRenderer;
+    public final DysonSphereRenderer sphereRenderer;
     
     @SuppressWarnings("unused")
     public DebugEntityBlockRenderer(BlockEntityRendererProvider.Context context) {

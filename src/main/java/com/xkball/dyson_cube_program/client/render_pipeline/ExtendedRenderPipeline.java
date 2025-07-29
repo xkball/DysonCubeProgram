@@ -7,6 +7,7 @@ import com.mojang.blaze3d.platform.LogicOp;
 import com.mojang.blaze3d.platform.PolygonMode;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.textures.TextureFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
@@ -21,33 +22,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 @NonNullByDefault
 public class ExtendedRenderPipeline extends RenderPipeline {
     
     public final Map<String, UpdatableUBO> UBOBindings;
+    public final Map<String, Supplier<GpuTextureView>> samplerBindings;
     public final List<String> SSBOs;
     
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public ExtendedRenderPipeline(ResourceLocation location, ResourceLocation vertexShader,
-                                     ResourceLocation fragmentShader, ShaderDefines shaderDefines,
-                                     List<String> samplers, List<UniformDescription> uniforms,
-                                     Optional<BlendFunction> blendFunction, DepthTestFunction depthTestFunction,
-                                     PolygonMode polygonMode, boolean cull,
-                                     boolean writeColor, boolean writeAlpha, boolean writeDepth,
-                                     LogicOp colorLogic, VertexFormat vertexFormat,
-                                     VertexFormat.Mode vertexFormatMode,
-                                     float depthBiasScaleFactor, float depthBiasConstant,
-                                     int sortKey, Optional<StencilTest> stencilTest,
-                                     Map<String, UpdatableUBO> UBOBindings, List<String> SSBOs) {
+                                  ResourceLocation fragmentShader, ShaderDefines shaderDefines,
+                                  List<String> samplers, List<UniformDescription> uniforms,
+                                  Optional<BlendFunction> blendFunction, DepthTestFunction depthTestFunction,
+                                  PolygonMode polygonMode, boolean cull,
+                                  boolean writeColor, boolean writeAlpha, boolean writeDepth,
+                                  LogicOp colorLogic, VertexFormat vertexFormat,
+                                  VertexFormat.Mode vertexFormatMode,
+                                  float depthBiasScaleFactor, float depthBiasConstant,
+                                  int sortKey, Optional<StencilTest> stencilTest,
+                                  Map<String, UpdatableUBO> UBOBindings, Map<String, Supplier<GpuTextureView>> samplerBindings,
+                                  List<String> SSBOs) {
         super(location, vertexShader, fragmentShader, shaderDefines, samplers, uniforms, blendFunction, depthTestFunction, polygonMode, cull, writeColor, writeAlpha, writeDepth, colorLogic, vertexFormat, vertexFormatMode, depthBiasScaleFactor, depthBiasConstant, sortKey, stencilTest);
         this.UBOBindings = UBOBindings;
+        this.samplerBindings = samplerBindings;
         this.SSBOs = SSBOs;
     }
     
     public void apply(RenderPass renderPass) {
         for(var entry : UBOBindings.entrySet()) {
             renderPass.setUniform(entry.getKey(),entry.getValue().getBuffer());
+        }
+        for(var entry : samplerBindings.entrySet()) {
+            renderPass.bindSampler(entry.getKey(), entry.getValue().get());
         }
     }
     
@@ -64,10 +72,16 @@ public class ExtendedRenderPipeline extends RenderPipeline {
     public static class Builder extends RenderPipeline.Builder {
         
         private final Map<String, UpdatableUBO> UBOBindings = new HashMap<>();
+        public final Map<String, Supplier<GpuTextureView>> samplerBindings = new HashMap<>();
         private final List<String> SSBOs = new ArrayList<>();
         
         public Builder(){
             super();
+        }
+        
+        public Builder bindSampler(String sampler, Supplier<GpuTextureView> texture){
+            this.samplerBindings.put(sampler, texture);
+            return this;
         }
         
         public Builder bindUniform(String uniform, UpdatableUBO ubo){
@@ -299,8 +313,8 @@ public class ExtendedRenderPipeline extends RenderPipeline {
                         nextPipelineSortKey++,
                         this.stencilTest,
                         this.UBOBindings,
-                        this.SSBOs
-                );
+                        this.samplerBindings,
+                        this.SSBOs);
             }
         }
         

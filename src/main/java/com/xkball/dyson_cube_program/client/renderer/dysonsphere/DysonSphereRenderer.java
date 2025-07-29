@@ -2,7 +2,6 @@ package com.xkball.dyson_cube_program.client.renderer.dysonsphere;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ISTD140Writer;
@@ -19,6 +18,7 @@ import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprint
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSphereLayerData;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
+import com.xkball.dyson_cube_program.utils.math.MathConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.Mth;
@@ -37,7 +37,7 @@ import java.util.function.Consumer;
 @NonNullByDefault
 public class DysonSphereRenderer {
     
-    private final DysonSpareBlueprintData data;
+    public DysonSpareBlueprintData data;
     private final Map<RenderPipeline, MeshBundle<RenderPipeline>> meshes = new HashMap<>();
     
     public DysonSphereRenderer(DysonSpareBlueprintData data) {
@@ -50,6 +50,7 @@ public class DysonSphereRenderer {
         }
         meshes.clear();
         meshes.put(DCPRenderPipelines.POSITION_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_color_instanced", DCPRenderPipelines.POSITION_COLOR_INSTANCED));
+        meshes.put(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_tex_color_instanced", DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED));
         meshes.put(RenderPipelines.DEBUG_QUADS, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",RenderPipelines.DEBUG_QUADS));
         meshes.put(DCPRenderPipelines.DEBUG_LINE, new MeshBundleWithRenderPipeline("dyson_sphere_debug_lines",DCPRenderPipelines.DEBUG_LINE));
         var elements = data.type().elementTypes;
@@ -152,10 +153,16 @@ public class DysonSphereRenderer {
                     currentL += d/2;
                     var q = new Quaternionf().rotateAxis((float) Math.toRadians(1.25 * currentL),normal);
                     var p = posA.rotate(q,new Vector3f());
+                    var foq = facingOrigin(p);
+                    var pb = posB.sub(p,new Vector3f()).normalize();
+                    var theta = -Math.acos(MathConstants.X_POSITIVE.rotate(foq,new Vector3f()).dot(pb));
                     poseStack.pushPose();
                     poseStack.translate(p.x(),p.y(),p.z());
-                    poseStack.scale(400,400,l*d);
-                    poseStack.mulPose(facingOrigin(p));
+                    poseStack.mulPose(new Quaternionf().rotateAxis((float)theta,p));
+                    poseStack.mulPose(foq);
+                    poseStack.scale(l*d,200,200);
+                    //面反向了 原因未知
+                    poseStack.scale(-1,-1,-1);
                     transformList.add(new TransMatColor(new Matrix4f(poseStack.last().pose()),ColorUtils.Vectorization.rgbaColor(color)));
                     poseStack.popPose();
                     currentL += d/2;
@@ -165,7 +172,7 @@ public class DysonSphereRenderer {
                 var mesh = lineBuilder.buildOrThrow();
                 var buffer = ISTD140Writer.batchBuildStd140Block(transformList);
                 var instanceInfo = new InstanceInfo(count,"InstanceTransformColor",buffer.slice());
-                meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,setup,instanceInfo));
+                meshes.computeIfPresent(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED,(k,v)-> v.appendImmediately(mesh,setup,instanceInfo));
             }
         }
         
@@ -195,7 +202,7 @@ public class DysonSphereRenderer {
     }
     
     private static Quaternionf facingOrigin(Vector3f pos){
-        var u = new Vector3f(0,1,0);
+        var u = MathConstants.Y_POSITIVE;
         var d = pos.negate(new Vector3f()).normalize();
         var axis = u.cross(d,new Vector3f()).normalize();
         var theta = Math.acos(u.dot(d));
@@ -206,7 +213,7 @@ public class DysonSphereRenderer {
         if(orbit == null) return p -> {};
         return p -> {
             p.mulPose(orbit.rotation());
-            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
+            // p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
         };
     }
 }

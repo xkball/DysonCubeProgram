@@ -4,11 +4,13 @@ import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.shaders.UniformType;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderStateShard;
 
 public class DCPRenderPipelines {
     
@@ -27,6 +29,11 @@ public class DCPRenderPipelines {
             .withLocation(VanillaUtils.modRL("position_tex_color_instanced"))
             .withVertexShader(VanillaUtils.modRL("core/position_tex_color_instanced"))
             .withFragmentShader("core/position_tex_color")
+            .withSampler("Sampler0")
+            .bindSampler("Sampler0",() -> {
+                RenderStateShard.BLOCK_SHEET_MIPPED.setupRenderState();
+                return RenderSystem.getShaderTexture(0);
+            })
             .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
             .withSSBO("InstanceTransformColor")

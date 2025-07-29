@@ -4,8 +4,8 @@ import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
+import org.lwjgl.system.MemoryUtil;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 
 public interface ISTD140Writer {
@@ -23,11 +23,13 @@ public interface ISTD140Writer {
             it.calculateSize(calculator);
         }
         var size = calculator.get();
-        var buffer = ByteBuffer.allocateDirect(size);
+        var buffer = MemoryUtil.memAlloc(size);
         var builder = Std140Builder.intoBuffer(buffer);
         for(var it : list){
             it.writeToBuffer(builder);
         }
-        return ClientUtils.getGpuDevice().createBuffer(() -> "std140buffer",GpuBuffer.USAGE_UNIFORM,builder.get());
+        var result = ClientUtils.getGpuDevice().createBuffer(() -> "std140buffer",GpuBuffer.USAGE_UNIFORM,builder.get());
+        MemoryUtil.memFree(buffer);
+        return result;
     }
 }
