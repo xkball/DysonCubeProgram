@@ -1,5 +1,6 @@
 package com.xkball.dyson_cube_program.utils;
 
+import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.CommandEncoder;
@@ -7,8 +8,13 @@ import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.xkball.dyson_cube_program.client.ClientEvent;
 import com.xkball.dyson_cube_program.utils.math.Quad;
@@ -18,6 +24,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.RandomSource;
+import org.joml.Matrix3f;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
@@ -28,6 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import java.util.Scanner;
 
 public class ClientUtils {
     
@@ -160,5 +169,72 @@ public class ClientUtils {
             }
         }
         return true;
+    }
+    
+    public static class SkyHelper{
+        public static final List<StarData> stars = new ArrayList<>();
+    
+        public static void loadStars(){
+            stars.clear();
+            var temp = new ArrayList<StarData>();
+            try(var input = ClientUtils.class.getClassLoader().getResourceAsStream("META-INF/output.csv");
+                var scanner = new Scanner(input)) {
+                while(scanner.hasNextLine()){
+                    temp.add(StarData.parse(scanner.nextLine()));
+                }
+            }catch (Exception e){
+                LOGGER.error("Failed to load stars.", e);
+            }
+            stars.addAll(temp.stream().limit(4000).toList());
+        }
+        
+        public static Pair<GpuBuffer,Integer> buildStars(){
+            RandomSource randomsource = RandomSource.create(10842L);
+            GpuBuffer gpubuffer;
+            int indexCount;
+            try (ByteBufferBuilder bytebufferbuilder = ByteBufferBuilder.exactlySized(DefaultVertexFormat.POSITION.getVertexSize() * stars.size() * 4)) {
+                BufferBuilder bufferbuilder = new BufferBuilder(bytebufferbuilder, VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+                
+                for(var star: stars){
+                    star.putQuad(bufferbuilder,randomsource);
+                }
+                
+                try (MeshData meshdata = bufferbuilder.buildOrThrow()) {
+                    indexCount = meshdata.drawState().indexCount();
+                    gpubuffer = RenderSystem.getDevice().createBuffer(() -> "DCP Stars vertex buffer", 40, meshdata.vertexBuffer());
+                }
+            }
+            
+            return Pair.of(gpubuffer,indexCount);
+        }
+    }
+    
+    public record StarData(String id, float ra, float dec, float k, float mag){
+        
+        public static StarData parse(String str){
+            var lt = str.split(",");
+            return new StarData(lt[0],Float.parseFloat(lt[1]),Float.parseFloat(lt[2]),Float.parseFloat(lt[3]),Float.parseFloat(lt[4]));
+        }
+        
+        public Vector3f pos(){
+            var r_ra = Math.toRadians(ra);
+            var r_dec = Math.toRadians(dec);
+            float cosDec = (float) Math.cos(r_dec);
+            float x = cosDec * (float) Math.cos(r_ra);
+            float z = cosDec * (float) Math.sin(r_ra);
+            float y = (float) -Math.sin(r_dec);
+            return new Vector3f(x, y, z).normalize();
+        }
+        
+        public void putQuad(BufferBuilder builder, RandomSource random){
+            var size = (float) ((8.2f-mag) * 0.025f + Math.log(8.2f-mag+1) * 0.01);
+            var pos = this.pos().normalize(100f);
+            var z_rotate = (float)(random.nextDouble() * Math.PI * 2);
+            var mat3 = new Matrix3f().rotateTowards(pos.negate(new Vector3f()),new Vector3f(0,1,0)).rotateZ(z_rotate);
+            builder.addVertex(new Vector3f(size, -size, 0.0F).mul(mat3).add(pos));
+            builder.addVertex(new Vector3f(size, size, 0.0F).mul(mat3).add(pos));
+            builder.addVertex(new Vector3f(-size, size, 0.0F).mul(mat3).add(pos));
+            builder.addVertex(new Vector3f(-size, -size, 0.0F).mul(mat3).add(pos));
+        }
     }
 }

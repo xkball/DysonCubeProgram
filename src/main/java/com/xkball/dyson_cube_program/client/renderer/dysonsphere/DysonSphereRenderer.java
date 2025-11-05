@@ -12,6 +12,7 @@ import com.xkball.dyson_cube_program.client.render_pipeline.mesh.InstanceInfo;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundleWithRenderPipeline;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.TransMatColor;
+import com.xkball.dyson_cube_program.client.renderer.SphereHexGridMesh;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
@@ -118,6 +119,7 @@ public class DysonSphereRenderer {
         var frameModel = modelManager.getStandaloneModel(DCPStandaloneModels.DYSON_FRAME_KEY);
         if(frameModel != null){
             var lineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED);
+            var debugLineBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
             var transformList = new ArrayList<TransMatColor>();
             ClientUtils.putModelToBuffer(poseStack,lineBuilder,frameModel.getAll(),-1);
             var frames = layer.framePool().stream().filter(Objects::nonNull).toList();
@@ -125,12 +127,15 @@ public class DysonSphereRenderer {
             for(var frame : frames){
                 var color = ColorUtils.abgrToArgb(frame.color());
                 if(color == 0) color = defaultColor;
+                color = -1;
                 var nodeA = nodes.get(frame.nodeAID());
                 var nodeB = nodes.get(frame.nodeBID());
                 var posA = nodeA.pos();
                 var posB = nodeB.pos();
+                var dirA = posA.normalize(new Vector3f());
+                var dirB = posB.normalize(new Vector3f());
                 var r = (posA.length() + posB.length()) / 2;
-                var cosThetaAB = posA.normalize(new Vector3f()).dot(posB.normalize(new Vector3f()));
+                var cosThetaAB = dirA.dot(dirB);
                 var thetaAB = Math.toDegrees(Math.acos(cosThetaAB));
                 var n = thetaAB/1.25;
                 var fracN = Mth.frac(n);
@@ -148,24 +153,35 @@ public class DysonSphereRenderer {
                 float l = (float) (Math.toRadians(1.25) * r);
                 var normal = posA.cross(posB,new Vector3f()).normalize();
                 float currentL = 0;
+                var posList = new ArrayList<Vector3f>();
                 for (int i = 0; i < n; i++) {
                     var d = ( i == 0 || i == n - 1) ? firstAndLastL : 1;
                     currentL += d/2;
                     var q = new Quaternionf().rotateAxis((float) Math.toRadians(1.25 * currentL),normal);
                     var p = posA.rotate(q,new Vector3f());
-                    var foq = facingOrigin(p);
-                    var pb = posB.sub(p,new Vector3f()).normalize();
-                    var theta = -Math.acos(MathConstants.X_POSITIVE.rotate(foq,new Vector3f()).dot(pb));
+                    posList.add(p);
+                   
+                    currentL += d/2;
+                }
+                posList.add(posB);
+                for(int i = 0; i < posList.size() - 1; i++){
+                    var d = ( i == 0 || i == n - 1) ? firstAndLastL : 1;
+                    var pos = posList.get(i);
+                    var nextPos = posList.get(i+1);
+                    var foq = facingOrigin(pos);
+                    var pb = nextPos.sub(pos,new Vector3f()).normalize();
+                    var rotationDir = MathConstants.X_POSITIVE.rotate(foq,new Vector3f());
+                   
+                    var theta = -Math.acos(rotationDir.dot(pb));
                     poseStack.pushPose();
-                    poseStack.translate(p.x(),p.y(),p.z());
-                    poseStack.mulPose(new Quaternionf().rotateAxis((float)theta,p));
+                    poseStack.translate(pos.x(),pos.y(),pos.z());
+                    poseStack.mulPose(new Quaternionf().rotateAxis((float)theta,pos));
                     poseStack.mulPose(foq);
                     poseStack.scale(l*d,200,200);
-                    //面反向了 原因未知
+                    //面反向了 原因未知 但是无所谓再反一次就行
                     poseStack.scale(-1,-1,-1);
                     transformList.add(new TransMatColor(new Matrix4f(poseStack.last().pose()),ColorUtils.Vectorization.rgbaColor(color)));
                     poseStack.popPose();
-                    currentL += d/2;
                 }
             }
             if(!frames.isEmpty()) {
@@ -194,7 +210,11 @@ public class DysonSphereRenderer {
             var mesh = shellBuilder.buildOrThrow();
             meshes.computeIfPresent(RenderPipelines.DEBUG_QUADS,(k,v)-> v.appendImmediately(mesh,setup));
         }
-        
+        poseStack.pushPose();
+        poseStack.scale(60000,60000,60000);
+        var shgm = new SphereHexGridMesh(7);
+        meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v) -> v.appendImmediately(shgm.buildMesh_(poseStack)));
+        poseStack.popPose();
     }
     
     private void renderSingleSwarm(DysonOrbitData orbit, int sailCount, Vector4f color){
@@ -213,7 +233,7 @@ public class DysonSphereRenderer {
         if(orbit == null) return p -> {};
         return p -> {
             p.mulPose(orbit.rotation());
-            // p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
+            //p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
         };
     }
 }

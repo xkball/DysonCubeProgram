@@ -16,6 +16,7 @@
     "MixinLevelRenderer",
     "MixinRenderPass",
     "MixinRenderSystem",
+    "MixinSkyRenderer",
     "MixinSTD140Builder"
   ],
   "injectors": {
