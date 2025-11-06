@@ -70,6 +70,12 @@ public class ClientUtils {
         }
     }
     
+    public static PoseStack fromPose(PoseStack.Pose pose){
+        var result = new PoseStack();
+        result.last().set(pose);
+        return result;
+    }
+    
     public static void renderAxis(MultiBufferSource bufferSource, PoseStack poseStack) {
         var buffer = bufferSource.getBuffer(RenderType.debugLineStrip(8));
         var matrix = poseStack.last();

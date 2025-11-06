@@ -14,6 +14,7 @@ import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.UpdatableUBO;
 import net.minecraft.client.renderer.ShaderDefines;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuTextureView;
 import net.neoforged.neoforge.client.stencil.StencilTest;
 
 import java.util.ArrayList;
@@ -55,7 +56,9 @@ public class ExtendedRenderPipeline extends RenderPipeline {
             renderPass.setUniform(entry.getKey(),entry.getValue().getBuffer());
         }
         for(var entry : samplerBindings.entrySet()) {
-            renderPass.bindSampler(entry.getKey(), entry.getValue().get());
+            var texture = entry.getValue().get();
+            if(texture instanceof ValidationGpuTextureView vgtv) texture = vgtv.getRealTextureView();
+            renderPass.bindSampler(entry.getKey(), texture);
         }
     }
     

@@ -11,6 +11,5 @@ public class DebugEntityBlockEntity extends BlockEntity {
     
     public DebugEntityBlockEntity(BlockPos pos, BlockState blockState) {
         super(DCPTempReg.DEBUG_ENTITY_BLOCK_ENTITY.get(), pos, blockState);
-        
     }
 }

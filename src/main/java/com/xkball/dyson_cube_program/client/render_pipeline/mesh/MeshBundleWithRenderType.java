@@ -9,6 +9,7 @@ import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
                 .writeTransform(
                         RenderSystem.getModelViewMatrix(),
                         new Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
-                        RenderSystem.getModelOffset(),
+                        new Vector3f(),
                         RenderSystem.getTextureMatrix(),
                         RenderSystem.getShaderLineWidth()
                 );
