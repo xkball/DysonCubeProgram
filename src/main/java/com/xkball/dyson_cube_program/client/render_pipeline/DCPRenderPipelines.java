@@ -21,7 +21,7 @@ public class DCPRenderPipelines {
             .withFragmentShader("core/position_color")
             .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
-            .withSSBO("InstanceTransform")
+            .withSSBO("InstanceTransformColor")
             .buildExtended();
     
     public static final ExtendedRenderPipeline POSITION_TEX_COLOR_INSTANCED = ExtendedRenderPipeline.extendedbuilder()

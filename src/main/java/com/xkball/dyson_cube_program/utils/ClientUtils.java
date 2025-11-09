@@ -1,6 +1,7 @@
 package com.xkball.dyson_cube_program.utils;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.opengl.GlDevice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.CommandEncoder;
@@ -17,7 +18,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.xkball.dyson_cube_program.client.ClientEvent;
-import com.xkball.dyson_cube_program.utils.math.Quad;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -25,13 +25,13 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.RandomSource;
+import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuDevice;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalDouble;
@@ -44,6 +44,15 @@ public class ClientUtils {
     
     public static GpuDevice getGpuDevice(){
         return RenderSystem.getDevice();
+    }
+    
+    public static GlDevice getGLDevice(){
+        var device = getGpuDevice();
+        if(device instanceof ValidationGpuDevice vgd) {
+            //noinspection UnstableApiUsage
+            return (GlDevice) vgd.getRealDevice();
+        }
+        return (GlDevice) device;
     }
     
     public static CommandEncoder getCommandEncoder(){
@@ -104,77 +113,10 @@ public class ClientUtils {
     }
     
     public static void putModelToBuffer(PoseStack poseStack, BufferBuilder builder, Collection<BakedQuad> quads, int color){
-        var color_ = ColorUtils.Vectorization.rgbaColor(color);
+        var color_ = ColorUtils.Vectorization.argbColor(color);
         for(var quad : quads){
             builder.putBulkData(poseStack.last(),quad,color_.x,color_.y,color_.z,color_.w, LightTexture.pack(15,15), OverlayTexture.NO_OVERLAY);
         }
-    }
-    
-    public static List<Quad> earClipping(List<Vector3f> points){
-        if(points.size() == 3){
-            return List.of(new Quad(points.get(0), points.get(1), points.get(2), points.get(2)));
-        }
-        if(points.size() == 4){
-            return List.of(new Quad(points.get(0), points.get(1), points.get(2), points.get(3)));
-        }
-        var result = new ArrayList<Quad>();
-        var plist = new LinkedList<>(points);
-        if(isCounterclockwisePoints(points)) {
-            plist = plist.reversed();
-        }
-        var count = 0;
-        while (plist.size() > 3){
-            count++;
-            var iter = plist.iterator();
-            var a= iter.next();
-            var b = iter.next();
-            var c = plist.getLast();
-            if(isEar(a,c,b,plist)){
-                result.add(new Quad(a,b,c,c));
-                plist.removeFirst();
-            }
-            else {
-                plist.addLast(plist.removeFirst());
-            }
-            if(count > points.size() * 100){
-                LOGGER.error("Failed to triangulated polygons.");
-                LOGGER.error("points: {} ", points);
-                break;
-            }
-        }
-        result.add(new Quad(plist.getFirst(),plist.get(1),plist.getLast(),plist.getLast()));
-        return result;
-    }
-    
-    public static boolean isCounterclockwisePoints(List<Vector3f> points){
-        var n = new Vector3f();
-        for(var i = 0; i < points.size() - 1; i++){
-            var a = points.get(i);
-            var b = points.get(i + 1);
-            n.add(a.cross(b,new Vector3f()));
-        }
-        return n.dot(points.getFirst()) < 0;
-    }
-    
-    public static boolean isEar(Vector3f c, Vector3f l, Vector3f r, Collection<Vector3f> points){
-        var nab = l.cross(c,new Vector3f()).normalize();
-        var nbc = c.cross(r,new Vector3f()).normalize();
-        var nac = r.cross(l,new Vector3f()).normalize();
-        
-        var d = l.dot(c.cross(r,new Vector3f()));
-        if(d < 0) return false;
-        
-        for(var p : points){
-            //此处用 == 是有意义的 因此也要求输入三个点必须要在points中
-            if(p == c || p == l || p == r) continue;
-            var dab = Math.signum(p.dot(nab));
-            var dbc = Math.signum(p.dot(nbc));
-            var dac = Math.signum(p.dot(nac));
-            if(dab > 0 && dbc > 0 && dac > 0){
-                return false;
-            }
-        }
-        return true;
     }
     
     public static class SkyHelper{

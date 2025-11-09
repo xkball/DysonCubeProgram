@@ -101,8 +101,12 @@ public class ColorUtils {
             return new Vector3f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f);
         }
         
-        public static Vector4f rgbaColor(int color){
+        public static Vector4f argbColor(int color){
             return new Vector4f((color >> 16 & 0xFF) / 255f, (color >> 8 & 0xFF) / 255f, (color & 0xFF) / 255f,(color >> 24 & 0xFF) / 255f);
+        }
+        
+        public static Vector4f abgrColor(int color){
+            return argbColor(abgrToArgb(color));
         }
     }
 }

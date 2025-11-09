@@ -2,15 +2,7 @@
 
 #moj_import <minecraft:dynamictransforms.glsl>
 #moj_import <minecraft:projection.glsl>
-
-struct TransMatColor{
-    mat4 transforms_ssbo;
-    vec4 color_ssbo;
-};
-
-layout(std140) buffer InstanceTransformColor {
-    TransMatColor transMatColor[];
-};
+#moj_import <dyson_cube_program:trans_color_ssbo.glsl>
 
 in vec3 Position;
 in vec2 UV0;
