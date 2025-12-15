@@ -10,5 +10,5 @@ import java.nio.ByteBuffer;
 public interface MixinDirectStateAccess {
     
     @Invoker
-    ByteBuffer invokeMapBufferRange(int buffer, int offset, int length, int access, int usage);
+    ByteBuffer invokeMapBufferRange(int buffer, long offset, long length, int access, int usage);
 }

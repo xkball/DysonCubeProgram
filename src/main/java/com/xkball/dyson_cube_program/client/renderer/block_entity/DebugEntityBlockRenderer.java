@@ -8,10 +8,10 @@ import com.xkball.dyson_cube_program.common.block_entity.DebugEntityBlockEntity;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
 import com.xkball.dyson_cube_program.test.DysonBluePrintTest;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3f;
@@ -55,6 +55,6 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     
     @Override
     public void submit(DebugEntityState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
-        nodeCollector.submitCustomGeometry(poseStack, RenderType.DEBUG_QUADS,(p,v) -> render(renderState,ClientUtils.fromPose(p)));
+        nodeCollector.submitCustomGeometry(poseStack, RenderTypes.debugQuads(),(p, v) -> render(renderState,ClientUtils.fromPose(p)));
     }
 }

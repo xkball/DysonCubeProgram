@@ -8,7 +8,6 @@ import com.xkball.dyson_cube_program.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
 import org.joml.Quaternionf;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ public record DysonOrbitData (
     public static final Codec<DysonOrbitData> CODEC = RecordCodecBuilder.create(ins -> ins.group(
             Codec.INT.fieldOf("id").forGetter(DysonOrbitData::id),
             Codec.FLOAT.fieldOf("radius").forGetter(DysonOrbitData::radius),
-            ExtraCodecs.QUATERNIONF.fieldOf("rotation").forGetter(DysonOrbitData::rotation),
+            CodecUtils.QUATERNIONF.fieldOf("rotation").forGetter(DysonOrbitData::rotation),
             Codec.BOOL.fieldOf("enable").forGetter(DysonOrbitData::enable)
     ).apply(ins, DysonOrbitData::new));
     
@@ -35,7 +34,7 @@ public record DysonOrbitData (
             buf.readInt();
             int id = ByteBufCodecs.INT.decode(buf);
             float radius = ByteBufCodecs.FLOAT.decode(buf);
-            Quaternionf rotation = ByteBufCodecs.QUATERNIONF.decode(buf);
+            Quaternionf rotation = CodecUtils.StreamCodecs.QUATERNIONF.decode(buf);
             boolean enable = ByteBufCodecs.BOOL.decode(buf);
             return new DysonOrbitData(id, radius, rotation, enable);
         }

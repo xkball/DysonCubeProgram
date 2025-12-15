@@ -19,7 +19,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 
 @Mod(DysonCubeProgram.MODID)
-@ModMeta(minecraftVersion = "1.21.10", useLanguages = {"en_us","zh_cn"})
+@ModMeta(minecraftVersion = "1.21.11", useLanguages = {"en_us","zh_cn"})
 public class DysonCubeProgram {
 
     public static final String MODID = "dyson_cube_program";

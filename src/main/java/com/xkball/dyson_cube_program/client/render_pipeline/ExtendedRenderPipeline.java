@@ -7,13 +7,15 @@ import com.mojang.blaze3d.platform.LogicOp;
 import com.mojang.blaze3d.platform.PolygonMode;
 import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.textures.TextureFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.UpdatableUBO;
 import net.minecraft.client.renderer.ShaderDefines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuTextureView;
 import net.neoforged.neoforge.client.stencil.StencilTest;
 
@@ -29,12 +31,12 @@ import java.util.function.Supplier;
 public class ExtendedRenderPipeline extends RenderPipeline {
     
     public final Map<String, UpdatableUBO> UBOBindings;
-    public final Map<String, Supplier<GpuTextureView>> samplerBindings;
+    public final Map<String, Supplier<Pair<GpuTextureView, GpuSampler>>> samplerBindings;
     public final List<String> SSBOs;
     
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public ExtendedRenderPipeline(ResourceLocation location, ResourceLocation vertexShader,
-                                  ResourceLocation fragmentShader, ShaderDefines shaderDefines,
+    public ExtendedRenderPipeline(Identifier location, Identifier vertexShader,
+                                  Identifier fragmentShader, ShaderDefines shaderDefines,
                                   List<String> samplers, List<UniformDescription> uniforms,
                                   Optional<BlendFunction> blendFunction, DepthTestFunction depthTestFunction,
                                   PolygonMode polygonMode, boolean cull,
@@ -43,7 +45,7 @@ public class ExtendedRenderPipeline extends RenderPipeline {
                                   VertexFormat.Mode vertexFormatMode,
                                   float depthBiasScaleFactor, float depthBiasConstant,
                                   int sortKey, Optional<StencilTest> stencilTest,
-                                  Map<String, UpdatableUBO> UBOBindings, Map<String, Supplier<GpuTextureView>> samplerBindings,
+                                  Map<String, UpdatableUBO> UBOBindings, Map<String, Supplier<Pair<GpuTextureView, GpuSampler>>> samplerBindings,
                                   List<String> SSBOs) {
         super(location, vertexShader, fragmentShader, shaderDefines, samplers, uniforms, blendFunction, depthTestFunction, polygonMode, cull, writeColor, writeAlpha, writeDepth, colorLogic, vertexFormat, vertexFormatMode, depthBiasScaleFactor, depthBiasConstant, sortKey, stencilTest);
         this.UBOBindings = UBOBindings;
@@ -56,9 +58,9 @@ public class ExtendedRenderPipeline extends RenderPipeline {
             renderPass.setUniform(entry.getKey(),entry.getValue().getBuffer());
         }
         for(var entry : samplerBindings.entrySet()) {
-            var texture = entry.getValue().get();
+            var texture = entry.getValue().get().getFirst();
             if(texture instanceof ValidationGpuTextureView vgtv) texture = vgtv.getRealTextureView();
-            renderPass.bindSampler(entry.getKey(), texture);
+            renderPass.bindTexture(entry.getKey(), texture, entry.getValue().get().getSecond());
         }
     }
     
@@ -75,14 +77,14 @@ public class ExtendedRenderPipeline extends RenderPipeline {
     public static class Builder extends RenderPipeline.Builder {
         
         private final Map<String, UpdatableUBO> UBOBindings = new HashMap<>();
-        public final Map<String, Supplier<GpuTextureView>> samplerBindings = new HashMap<>();
+        public final Map<String, Supplier<Pair<GpuTextureView, GpuSampler>>> samplerBindings = new HashMap<>();
         private final List<String> SSBOs = new ArrayList<>();
         
         public Builder(){
             super();
         }
         
-        public Builder bindSampler(String sampler, Supplier<GpuTextureView> texture){
+        public Builder bindSampler(String sampler, Supplier<Pair<GpuTextureView, GpuSampler>> texture){
             this.samplerBindings.put(sampler, texture);
             return this;
         }
@@ -99,36 +101,36 @@ public class ExtendedRenderPipeline extends RenderPipeline {
         
         @Override
         public Builder withLocation(String location) {
-            this.location = Optional.of(ResourceLocation.withDefaultNamespace(location));
+            this.location = Optional.of(Identifier.withDefaultNamespace(location));
             return this;
         }
         
         @Override
-        public Builder withLocation(ResourceLocation location) {
+        public Builder withLocation(Identifier location) {
             this.location = Optional.of(location);
             return this;
         }
         
         @Override
         public Builder withFragmentShader(String fragmentShader) {
-            this.fragmentShader = Optional.of(ResourceLocation.withDefaultNamespace(fragmentShader));
+            this.fragmentShader = Optional.of(Identifier.withDefaultNamespace(fragmentShader));
             return this;
         }
         
         @Override
-        public Builder withFragmentShader(ResourceLocation fragmentShader) {
+        public Builder withFragmentShader(Identifier fragmentShader) {
             this.fragmentShader = Optional.of(fragmentShader);
             return this;
         }
         
         @Override
         public Builder withVertexShader(String vertexShader) {
-            this.vertexShader = Optional.of(ResourceLocation.withDefaultNamespace(vertexShader));
+            this.vertexShader = Optional.of(Identifier.withDefaultNamespace(vertexShader));
             return this;
         }
         
         @Override
-        public Builder withVertexShader(ResourceLocation vertexShader) {
+        public Builder withVertexShader(Identifier vertexShader) {
             this.vertexShader = Optional.of(vertexShader);
             return this;
         }

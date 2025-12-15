@@ -12,7 +12,7 @@ import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ICloseOnExit;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -93,7 +93,7 @@ public class CachedMesh implements ICloseOnExit<CachedMesh> {
         if(colorTarget == null || depthTarget == null) return;
         
         var modelView = RenderSystem.getModelViewStack().mul(poseStack.last().pose(), new Matrix4f());
-        var transformUBO = RenderSystem.getDynamicUniforms().writeTransform(modelView, new Vector4f(1,1,1,1), new Vector3f(), new Matrix4f(), 0f);
+        var transformUBO = RenderSystem.getDynamicUniforms().writeTransform(modelView, new Vector4f(1,1,1,1), new Vector3f(), new Matrix4f());
         try (var renderpass = ClientUtils.getCommandEncoder()
                 .createRenderPass(() -> name + " mesh rendering",colorTarget, OptionalInt.empty(), depthTarget, OptionalDouble.empty())){
             RenderSystem.bindDefaultUniforms(renderpass);

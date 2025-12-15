@@ -3,6 +3,7 @@ package com.xkball.dyson_cube_program.client.postprocess;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
+import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
 import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
@@ -62,17 +63,17 @@ public class BloomPostProcess extends AbstractPostProcess {
             var v = downSamplersV[i];
             RenderTarget finalSrc = src;
             this.updateDownSamplerUniform(i,true);
-            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,h, (pass) -> pass.bindSampler("DiffuseSampler", finalSrc.getColorTextureView()));
+            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,h, (pass) -> pass.bindTexture("DiffuseSampler", finalSrc.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT));
             this.updateDownSamplerUniform(i,false);
-            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,v,(pass) -> pass.bindSampler("DiffuseSampler", h.getColorTextureView()));
+            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,v,(pass) -> pass.bindTexture("DiffuseSampler", h.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT));
             src = h;
         }
         
         this.processOnce(DCPRenderPipelines.BLOOM_COMPOSITE,composite,(pass) -> {
-            pass.bindSampler("DiffuseSampler",swap.getColorTextureView());
-            pass.bindSampler("HighLight",input.getColorTextureView());
+            pass.bindTexture("DiffuseSampler",swap.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT);
+            pass.bindTexture("HighLight",input.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT);
             for(var i = 0; i < samplerDepth; i++) {
-                pass.bindSampler("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView());
+                pass.bindTexture("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT);
             }
         });
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();

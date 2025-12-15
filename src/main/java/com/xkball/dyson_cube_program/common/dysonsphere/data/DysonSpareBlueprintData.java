@@ -10,7 +10,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
 import org.joml.Vector4f;
 
 import javax.annotation.Nullable;
@@ -45,7 +44,7 @@ public record DysonSpareBlueprintData(
             Codec.INT.fieldOf("editorRenderMaskS").forGetter(DysonSpareBlueprintData::editorRenderMaskS),
             Codec.INT.fieldOf("gameRenderMaskS").forGetter(DysonSpareBlueprintData::gameRenderMaskS),
             DysonOrbitData.CODEC.listOf().fieldOf("swarmOrbits").forGetter(DysonSpareBlueprintData::swarmOrbits),
-            ExtraCodecs.VECTOR4F.listOf().fieldOf("sailOrbitColorHSVA").forGetter(DysonSpareBlueprintData::sailOrbitColorHSVA),
+            CodecUtils.VECTOR4F.listOf().fieldOf("sailOrbitColorHSVA").forGetter(DysonSpareBlueprintData::sailOrbitColorHSVA),
             Codec.INT.fieldOf("editorRenderMaskL").forGetter(DysonSpareBlueprintData::editorRenderMaskL),
             Codec.INT.fieldOf("gameRenderMaskL").forGetter(DysonSpareBlueprintData::gameRenderMaskL),
             DysonOrbitData.CODEC.listOf().fieldOf("layerOrbits").forGetter(DysonSpareBlueprintData::layerOrbits),
@@ -69,7 +68,7 @@ public record DysonSpareBlueprintData(
             int gameRenderMaskL = ByteBufCodecs.INT.decode(buf);
             List<DysonOrbitData> layerOrbits = DysonOrbitData.LIST_STREAM_CODEC.decode(buf);
             List<DysonSphereLayerData> layers = DysonSphereLayerData.LIST_STREAM_CODEC.decode(buf);
-            DysonSphereLayerData singleLayer = DysonSphereLayerData.STREAM_CODEC.decode(buf);
+            DysonSphereLayerData singleLayer = CodecUtils.StreamCodecs.nullable(DysonSphereLayerData.STREAM_CODEC).decode(buf);
             return new DysonSpareBlueprintData(timestamp, gameVersion, type, latLimit, editorRenderMaskS, gameRenderMaskS, swarmOrbits, sailOrbitColorHSVA, editorRenderMaskL, gameRenderMaskL, layerOrbits, layers, singleLayer);
         }
         
@@ -87,7 +86,8 @@ public record DysonSpareBlueprintData(
             ByteBufCodecs.INT.encode(buf, value.gameRenderMaskL());
             DysonOrbitData.LIST_STREAM_CODEC.encode(buf, value.layerOrbits());
             DysonSphereLayerData.LIST_STREAM_CODEC.encode(buf, value.layers());
-            DysonSphereLayerData.STREAM_CODEC.encode(buf, value.singleLayer());
+            //noinspection DataFlowIssue
+            CodecUtils.StreamCodecs.nullable(DysonSphereLayerData.STREAM_CODEC).encode(buf, value.singleLayer());
         }
     };
     

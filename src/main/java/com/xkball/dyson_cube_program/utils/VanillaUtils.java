@@ -8,10 +8,11 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -39,16 +40,16 @@ public class VanillaUtils {
     
     public static final boolean DEBUG = SharedConstants.IS_RUNNING_WITH_JDWP;
     public static final Direction[] DIRECTIONS = Direction.values();
-    public static final ResourceLocation MISSING_TEXTURE = ResourceLocation.withDefaultNamespace("missingno");
+    public static final Identifier MISSING_TEXTURE = Identifier.withDefaultNamespace("missingno");
     public static final int TRANSPARENT = ColorUtils.getColor(255, 255, 255, 0);
     public static final int GUI_GRAY = ColorUtils.getColor(30, 30, 30, 200);
     
-    public static ResourceLocation modRL(String path) {
+    public static Identifier modRL(String path) {
         return rLOf(DysonCubeProgram.MODID, path);
     }
     
-    public static ResourceLocation rLOf(String namespace, String path) {
-        return ResourceLocation.fromNamespaceAndPath(namespace, path);
+    public static Identifier rLOf(String namespace, String path) {
+        return Identifier.fromNamespaceAndPath(namespace, path);
     }
     
     public static EquipmentSlot equipmentSlotFromHand(InteractionHand hand) {
@@ -60,7 +61,7 @@ public class VanillaUtils {
         var level = livingEntity.level();
         var server = livingEntity.level().getServer();
         if (server != null && level instanceof ServerLevel serverLevel) {
-            CommandSourceStack cmdSrc = livingEntity.createCommandSourceStackForNameResolution(serverLevel).withPermission(2);
+            CommandSourceStack cmdSrc = livingEntity.createCommandSourceStackForNameResolution(serverLevel).withPermission(LevelBasedPermissionSet.GAMEMASTER);
             server.getCommands().performPrefixedCommand(cmdSrc, command);
         }
     }
@@ -68,7 +69,7 @@ public class VanillaUtils {
     public static void runCommand(String command, MinecraftServer server, UUID playerUUID) {
         var player = server.getPlayerList().getPlayer(playerUUID);
         if (player != null) {
-            server.getCommands().performPrefixedCommand(player.createCommandSourceStack().withPermission(2), command);
+            server.getCommands().performPrefixedCommand(player.createCommandSourceStack().withPermission(LevelBasedPermissionSet.GAMEMASTER), command);
         }
     }
     
@@ -84,7 +85,7 @@ public class VanillaUtils {
     }
     
     public static Component getName(Block block) {
-        ResourceLocation rl = BuiltInRegistries.BLOCK.getKey(block);
+        var rl = BuiltInRegistries.BLOCK.getKey(block);
         return Component.translatable("block." + rl.getNamespace() + "." + rl.getPath());
     }
     

@@ -1,9 +1,15 @@
 package com.xkball.dyson_cube_program.utils;
 
+import com.mojang.serialization.Codec;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Util;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
@@ -14,7 +20,40 @@ import java.util.function.IntFunction;
 @NonNullByDefault
 public class CodecUtils {
     
+    public static final Codec<Vector3f> VECTOR3F = Codec.FLOAT
+            .listOf()
+            .comapFlatMap(
+                    floats -> Util.fixedSize(floats, 3).map(floats1 -> new Vector3f(floats1.get(0), floats1.get(1), floats1.get(2))),
+                    vector3f -> List.of(vector3f.x(), vector3f.y(), vector3f.z())
+            );
+    
+    public static final Codec<Vector4f> VECTOR4F = Codec.FLOAT
+            .listOf()
+            .comapFlatMap(
+                    floats -> Util.fixedSize(floats, 4)
+                            .map(floats1 -> new Vector4f(floats1.get(0), floats1.get(1), floats1.get(2), floats1.get(3))),
+                    vector4f -> List.of(vector4f.x(), vector4f.y(), vector4f.z(), vector4f.w())
+            );
+    
+    public static final Codec<Quaternionf> QUATERNIONF = Codec.FLOAT
+            .listOf()
+            .comapFlatMap(
+                    floats -> Util.fixedSize(floats, 4)
+                            .map(floats1 -> new Quaternionf(floats1.get(0), floats1.get(1), floats1.get(2), floats1.get(3)).normalize()),
+                    quaternionf -> List.of(quaternionf.x(), quaternionf.y(), quaternionf.z(), quaternionf.w())
+            );
+    
     public static class StreamCodecs{
+        
+        public static final StreamCodec<ByteBuf, Vector3f> VECTOR3F = new StreamCodec<>() {
+            public Vector3f decode(ByteBuf p_331901_) {
+                return FriendlyByteBuf.readVector3f(p_331901_);
+            }
+            
+            public void encode(ByteBuf p_331539_, Vector3f p_455271_) {
+                FriendlyByteBuf.writeVector3f(p_331539_, p_455271_);
+            }
+        };
         
         public static final StreamCodec<ByteBuf, Vector4f> VECTOR4F = new StreamCodec<>() {
             public Vector4f decode(ByteBuf buffer) {
@@ -48,6 +87,16 @@ public class CodecUtils {
         
         public static final StreamCodec<ByteBuf, List<Integer>> NULLABLE_INT_LIST = nullableList(ArrayList::new, ByteBufCodecs.INT);
         
+        public static final StreamCodec<ByteBuf, Quaternionf> QUATERNIONF = new StreamCodec<>() {
+            public Quaternionf decode(ByteBuf p_332082_) {
+                return FriendlyByteBuf.readQuaternion(p_332082_);
+            }
+            
+            public void encode(ByteBuf p_331172_, Quaternionf p_455381_) {
+                FriendlyByteBuf.writeQuaternion(p_331172_, p_455381_);
+            }
+        };
+        
         //列表长度不以var int存取
         public static <B extends ByteBuf, V, C extends Collection<V>> StreamCodec<B, C> collection(
                 final IntFunction<C> factory, final StreamCodec<? super B, V> codec){
@@ -72,6 +121,26 @@ public class CodecUtils {
                     for (V v : value) {
                         codec.encode(buffer, v);
                     }
+                }
+            };
+        }
+        
+        public static <B extends ByteBuf, V> StreamCodec<B, V> nullable(final StreamCodec<? super B, V> codec){
+            return new StreamCodec<>() {
+                
+                @Override
+                public void encode(B buffer,@Nullable V value) {
+                    if(value == null) buffer.writeBoolean(false);
+                    else {
+                        buffer.writeBoolean(true);
+                        codec.encode(buffer, value);
+                    }
+                }
+                
+                @Override
+                public V decode(B buffer) {
+                    if(!buffer.readBoolean()) return null;
+                    return codec.decode(buffer);
                 }
             };
         }

@@ -58,7 +58,6 @@ public class ClientEvent {
     public static void onRegClientCommand(RegisterClientCommandsEvent event){
         event.getDispatcher().register(
                 Commands.literal("dyson_cube_program")
-                        .requires(s -> s.hasPermission(4))
                         .then(Commands.literal("client")
                                 .then(Commands.literal("rebuild_mesh").executes(
                                         s -> {

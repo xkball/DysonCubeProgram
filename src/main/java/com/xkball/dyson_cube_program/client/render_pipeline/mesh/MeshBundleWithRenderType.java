@@ -7,7 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.systems.ScissorState;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -33,64 +33,44 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
                         RenderSystem.getModelViewMatrix(),
                         new Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
                         new Vector3f(),
-                        RenderSystem.getTextureMatrix(),
-                        RenderSystem.getShaderLineWidth()
+                        this.renderSettings.state.textureTransform.getMatrix()
                 );
     }
     
     @Override
     public void setupRenderPass(RenderPass renderPass) {
-        if(!(this.renderSettings instanceof RenderType.CompositeRenderType renderType)){
-            throw new IllegalStateException("Only support CompositeRenderType for now.");
+        renderPass.setPipeline(renderSettings.pipeline());
+        ScissorState scissorstate = RenderSystem.getScissorStateForRenderTypeDraws();
+        if (scissorstate.enabled()) {
+            renderPass.enableScissor(scissorstate.x(), scissorstate.y(), scissorstate.width(), scissorstate.height());
         }
-        else{
-            this.renderSettings.setupRenderState();
-            renderPass.setPipeline(renderType.renderPipeline);
-            ScissorState scissorstate = RenderSystem.getScissorStateForRenderTypeDraws();
-            if (scissorstate.enabled()) {
-                renderPass.enableScissor(scissorstate.x(), scissorstate.y(), scissorstate.width(), scissorstate.height());
-            }
-            RenderSystem.bindDefaultUniforms(renderPass);
-            renderPass.setUniform("DynamicTransforms", contextTransform);
-            for (int i = 0; i < 12; i++) {
-                GpuTextureView sampler = RenderSystem.getShaderTexture(i);
-                if (sampler != null) {
-                    renderPass.bindSampler("Sampler" + i, sampler);
-                }
-            }
+        RenderSystem.bindDefaultUniforms(renderPass);
+        renderPass.setUniform("DynamicTransforms", contextTransform);
+        for(var entry : renderSettings.state.getTextures().entrySet()) {
+            renderPass.bindTexture(entry.getKey(), entry.getValue().textureView(), entry.getValue().sampler());
         }
-      
     }
     
     @Override
     public void endRenderPass(RenderPass renderPass) {
-        this.renderSettings.clearRenderState();
     }
     
     @Override
     public @Nullable GpuTextureView getColorTarget() {
-        if(!(this.renderSettings instanceof RenderType.CompositeRenderType renderType)){
-            return null;
-        }
-        else{
-            RenderTarget rendertarget = renderType.state.outputState.getRenderTarget();
-            return RenderSystem.outputColorTextureOverride != null
-                    ? RenderSystem.outputColorTextureOverride
-                    : rendertarget.getColorTextureView();
-        }
+        RenderTarget rendertarget = renderSettings.state.outputTarget.getRenderTarget();
+        return RenderSystem.outputColorTextureOverride != null
+                ? RenderSystem.outputColorTextureOverride
+                : rendertarget.getColorTextureView();
+        
     }
     
     @Override
     public @Nullable GpuTextureView getDepthTarget() {
-        if(!(this.renderSettings instanceof RenderType.CompositeRenderType renderType)){
-            return null;
-        }
-        else{
-            RenderTarget rendertarget = renderType.state.outputState.getRenderTarget();
-            return rendertarget.useDepth
-                    ? (RenderSystem.outputDepthTextureOverride != null ? RenderSystem.outputDepthTextureOverride : rendertarget.getDepthTextureView())
-                    : null;
-        }
+        RenderTarget rendertarget =renderSettings.state.outputTarget.getRenderTarget();
+        return rendertarget.useDepth
+                ? (RenderSystem.outputDepthTextureOverride != null ? RenderSystem.outputDepthTextureOverride : rendertarget.getDepthTextureView())
+                : null;
+        
     }
     
     @Override

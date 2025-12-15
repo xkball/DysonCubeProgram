@@ -21,8 +21,8 @@ import com.xkball.dyson_cube_program.client.ClientEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuDevice;
@@ -86,7 +86,7 @@ public class ClientUtils {
     }
     
     public static void renderAxis(MultiBufferSource bufferSource, PoseStack poseStack) {
-        var buffer = bufferSource.getBuffer(RenderType.debugLineStrip(8));
+        var buffer = bufferSource.getBuffer(RenderTypes.lines());
         var matrix = poseStack.last();
         buffer.addVertex(matrix, 0, 0, 0).setNormal(matrix, -1, 0, 0).setColor(0xFFFF0000);
         buffer.addVertex(matrix, 100, 0, 0).setNormal(matrix, 1, 0, 0).setColor(0xFFFF0000);

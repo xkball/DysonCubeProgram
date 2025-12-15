@@ -80,7 +80,7 @@ public class TheSunRenderer {
     }
     
     public static Vector3f getRenderDirection(){
-        return TheSunRenderer.renderingCenter.sub(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().toVector3f(),new Vector3f());
+        return TheSunRenderer.renderingCenter.sub(Minecraft.getInstance().gameRenderer.getMainCamera().position().toVector3f(),new Vector3f());
     }
     
     public static void drawSunAt(PoseStack poseStack, Vector3f center, int color){

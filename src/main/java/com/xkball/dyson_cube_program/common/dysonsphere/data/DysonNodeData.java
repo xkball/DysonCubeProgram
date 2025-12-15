@@ -4,10 +4,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
+import com.xkball.dyson_cube_program.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
 import org.joml.Vector3f;
 
 @NonNullByDefault
@@ -31,7 +31,7 @@ public record DysonNodeData(
             Codec.INT.fieldOf("protoID").forGetter(DysonNodeData::protoID),
             Codec.BOOL.fieldOf("use").forGetter(DysonNodeData::use),
             Codec.BOOL.fieldOf("reserved").forGetter(DysonNodeData::reserved),
-            ExtraCodecs.VECTOR3F.fieldOf("pos").forGetter(DysonNodeData::pos),
+            CodecUtils.VECTOR3F.fieldOf("pos").forGetter(DysonNodeData::pos),
             Codec.INT.fieldOf("spMax").forGetter(DysonNodeData::spMax),
             Codec.INT.fieldOf("rid").forGetter(DysonNodeData::rid),
             Codec.INT.fieldOf("frameTurn").forGetter(DysonNodeData::frameTurn),
@@ -49,7 +49,7 @@ public record DysonNodeData(
             int protoID = ByteBufCodecs.INT.decode(buf);
             boolean use = ByteBufCodecs.BOOL.decode(buf);
             boolean reserved = ByteBufCodecs.BOOL.decode(buf);
-            Vector3f pos = ByteBufCodecs.VECTOR3F.decode(buf);
+            Vector3f pos = CodecUtils.StreamCodecs.VECTOR3F.decode(buf);
             int spMax = ByteBufCodecs.INT.decode(buf);
             int rid = ByteBufCodecs.INT.decode(buf);
             int frameTurn = ByteBufCodecs.INT.decode(buf);

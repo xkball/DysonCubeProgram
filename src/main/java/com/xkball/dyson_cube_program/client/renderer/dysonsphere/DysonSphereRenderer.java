@@ -21,7 +21,6 @@ import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import com.xkball.dyson_cube_program.utils.math.LatAndLon;
 import com.xkball.dyson_cube_program.utils.math.MathConstants;
-import com.xkball.dyson_cube_program.utils.math.Quad;
 import com.xkball.dyson_cube_program.utils.math.SphereGeometryUtils;
 import io.netty.util.collection.IntObjectMap;
 import net.minecraft.client.Minecraft;

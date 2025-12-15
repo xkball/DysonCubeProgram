@@ -4,13 +4,14 @@ import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.shaders.UniformType;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 
 public class DCPRenderPipelines {
     
@@ -31,8 +32,8 @@ public class DCPRenderPipelines {
             .withFragmentShader("core/position_tex_color")
             .withSampler("Sampler0")
             .bindSampler("Sampler0",() -> {
-                RenderStateShard.BLOCK_SHEET_MIPPED.setupRenderState();
-                return RenderSystem.getShaderTexture(0);
+                var texture = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+                return Pair.of(texture.getTextureView(),texture.getSampler());
             })
             .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
@@ -41,6 +42,7 @@ public class DCPRenderPipelines {
     
     public static final RenderPipeline DEBUG_LINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation(VanillaUtils.modRL("pipeline/debug_line"))
+            .withDepthWrite(true)
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.DEBUG_LINES)
             .build();
     
