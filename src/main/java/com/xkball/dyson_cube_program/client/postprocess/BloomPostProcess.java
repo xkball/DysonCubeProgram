@@ -63,17 +63,17 @@ public class BloomPostProcess extends AbstractPostProcess {
             var v = downSamplersV[i];
             RenderTarget finalSrc = src;
             this.updateDownSamplerUniform(i,true);
-            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,h, (pass) -> pass.bindTexture("DiffuseSampler", finalSrc.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT));
+            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,h, (pass) -> pass.bindTexture("DiffuseSampler", finalSrc.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP));
             this.updateDownSamplerUniform(i,false);
-            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,v,(pass) -> pass.bindTexture("DiffuseSampler", h.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT));
+            this.processOnce(DCPRenderPipelines.BLOOM_DOWN_SAMPLER,v,(pass) -> pass.bindTexture("DiffuseSampler", h.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP));
             src = h;
         }
         
         this.processOnce(DCPRenderPipelines.BLOOM_COMPOSITE,composite,(pass) -> {
-            pass.bindTexture("DiffuseSampler",swap.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT);
-            pass.bindTexture("HighLight",input.getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT);
+            pass.bindTexture("DiffuseSampler",swap.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
+            pass.bindTexture("HighLight",input.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
             for(var i = 0; i < samplerDepth; i++) {
-                pass.bindTexture("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView(), SamplerCacheCache.NEAREST_REPEAT);
+                pass.bindTexture("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
             }
         });
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();

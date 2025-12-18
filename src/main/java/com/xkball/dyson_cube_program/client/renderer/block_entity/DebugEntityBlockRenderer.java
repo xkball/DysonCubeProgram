@@ -35,7 +35,7 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     
     public void render(DebugEntityState blockEntity, PoseStack poseStack) {
         poseStack.pushPose();
-        var scale = 1/6000f;
+        var scale = 1/5000f;
         poseStack.scale(-1,1,1);
         poseStack.scale(scale, scale, scale);
         sphereRenderer.render(poseStack);

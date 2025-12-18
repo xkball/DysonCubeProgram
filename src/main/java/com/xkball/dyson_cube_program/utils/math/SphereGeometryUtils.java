@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class SphereGeometryUtils {
+    
     public static List<Quad> earClipping(List<Vector3f> points){
         if(points.size() == 3){
             return List.of(new Quad(points.get(0), points.get(1), points.get(2), points.get(2)));
@@ -104,5 +105,25 @@ public class SphereGeometryUtils {
             if(sign != nSign) return false;
         }
         return true;
+    }
+    
+    
+    public static Vector3f slerp(Vector3f a, Vector3f b, float t) {
+        var dest = new Vector3f();
+        float dot = a.dot(b);
+        dot = Math.max(-1.0f, Math.min(1.0f, dot));
+        float theta = (float) Math.acos(dot);
+        
+        if (theta < 1e-6f) {
+            dest.set(a).lerp(b, t).normalize();
+            return dest;
+        }
+        
+        float sinTheta = (float) Math.sin(theta);
+        float w0 = (float) Math.sin((1.0f - t) * theta) / sinTheta;
+        float w1 = (float) Math.sin(t * theta) / sinTheta;
+        
+        dest.set(a).mul(w0).add(new Vector3f(b).mul(w1));
+        return dest;
     }
 }

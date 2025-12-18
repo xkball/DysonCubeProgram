@@ -1,5 +1,7 @@
 package com.xkball.dyson_cube_program.utils.math;
 
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 public record LatAndLon(double lat, double lon) {
@@ -33,5 +35,17 @@ public record LatAndLon(double lat, double lon) {
     
     public double getLonDegree(){
         return Math.toDegrees(lon);
+    }
+    
+    public Vector2f distanceTo(LatAndLon other){
+        var dLat = other.lat - lat;
+        var dLon = other.lon - lon;
+        //if(dLon > Math.PI) dLon = Math.PI * 2 - dLon;
+        return new Vector2f((float) dLat,(float) dLon);
+    }
+    
+    public Matrix4f rotationTo(LatAndLon other){
+        var d = distanceTo(other);
+        return new Matrix4f().rotateY(d.y).rotateX(d.x);
     }
 }
