@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.client.render_pipeline;
+package com.xkball.dyson_cube_program.client.b3d.pipeline;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -7,7 +7,7 @@ import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
-import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
+import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;

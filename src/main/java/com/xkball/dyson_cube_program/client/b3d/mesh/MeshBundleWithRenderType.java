@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.client.render_pipeline.mesh;
+package com.xkball.dyson_cube_program.client.b3d.mesh;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;

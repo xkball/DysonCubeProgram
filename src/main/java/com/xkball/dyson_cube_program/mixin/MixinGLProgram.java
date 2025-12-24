@@ -2,7 +2,7 @@ package com.xkball.dyson_cube_program.mixin;
 
 import com.mojang.blaze3d.opengl.GlProgram;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedGLProgram;
-import com.xkball.dyson_cube_program.client.render_pipeline.uniform.SSBOIndexStorage;
+import com.xkball.dyson_cube_program.client.b3d.uniform.SSBOIndexStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 

@@ -1,7 +1,7 @@
 package com.xkball.dyson_cube_program.client;
 
 import com.mojang.logging.LogUtils;
-import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
+import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.renderer.block_entity.DebugEntityBlockRenderer;
 import com.xkball.dyson_cube_program.common.DCPTempReg;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;

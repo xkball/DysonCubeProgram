@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.client.render_pipeline;
+package com.xkball.dyson_cube_program.client.b3d.pipeline;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
@@ -13,7 +13,7 @@ import com.mojang.blaze3d.textures.TextureFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
-import com.xkball.dyson_cube_program.client.render_pipeline.uniform.UpdatableUBO;
+import com.xkball.dyson_cube_program.client.b3d.uniform.UpdatableUBO;
 import net.minecraft.client.renderer.ShaderDefines;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuTextureView;
@@ -72,6 +72,10 @@ public class ExtendedRenderPipeline extends RenderPipeline {
         }
         
         return builder;
+    }
+    
+    public static boolean haveSSBO(RenderPipeline pipeline){
+        return pipeline instanceof ExtendedRenderPipeline epp && !epp.SSBOs.isEmpty();
     }
     
     public static class Builder extends RenderPipeline.Builder {

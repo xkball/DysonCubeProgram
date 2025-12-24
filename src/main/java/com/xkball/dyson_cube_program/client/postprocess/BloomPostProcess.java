@@ -4,8 +4,8 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
-import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
-import com.xkball.dyson_cube_program.client.render_pipeline.uniform.DCPUniforms;
+import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
+import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
 

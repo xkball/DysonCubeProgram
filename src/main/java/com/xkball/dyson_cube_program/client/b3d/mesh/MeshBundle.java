@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.client.render_pipeline.mesh;
+package com.xkball.dyson_cube_program.client.b3d.mesh;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderPass;
@@ -10,6 +10,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xkball.dyson_cube_program.api.client.ICloseOnExit;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedRenderPass;
+import com.xkball.dyson_cube_program.client.b3d.extension.GLCommandList;
+import com.xkball.dyson_cube_program.client.b3d.renderpass.ExtendedRenderPass;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import net.minecraft.client.renderer.DynamicUniforms;
 import org.joml.Matrix4f;
@@ -101,6 +103,10 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     }
     
     public void render(PoseStack poseStack) {
+        render(poseStack, null);
+    }
+    
+    public void render(PoseStack poseStack, @Nullable GLCommandList cmdList) {
         var colorTarget = this.getColorTarget();
         var depthTarget = this.getDepthTarget();
         if(colorTarget == null || depthTarget == null) return;
@@ -118,8 +124,8 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
         var transformBuffers = RenderSystem.getDynamicUniforms().writeTransforms(transformList);
         
         this.beforeSetupRenderPass();
-        try (var renderpass = ClientUtils.getCommandEncoder()
-                .createRenderPass(() -> name + " mesh bundle rendering",colorTarget, OptionalInt.empty(), depthTarget, OptionalDouble.empty())){
+        try (var renderpass = new ExtendedRenderPass(ClientUtils.getCommandEncoder()
+                .createRenderPass(() -> name + " mesh bundle rendering",colorTarget, OptionalInt.empty(), depthTarget, OptionalDouble.empty()))){
             RenderSystem.bindDefaultUniforms(renderpass);
             this.setupRenderPass(renderpass);
             for(int i = 0; i < this.meshes.size(); i++) {
@@ -133,6 +139,7 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
                 renderpass.setUniform("DynamicTransforms", transformBuffers[i]);
                 renderpass.setVertexBuffer(0, mesh.getVertexBuffer());
                 renderpass.setIndexBuffer(mesh.getIndexBuffer(),mesh.getIndexType());
+                renderpass.useCmdList(cmdList);
                 renderpass.drawIndexed(0,0, mesh.getIndexCount(), instanceInfo.instanceCount());
                 
             }

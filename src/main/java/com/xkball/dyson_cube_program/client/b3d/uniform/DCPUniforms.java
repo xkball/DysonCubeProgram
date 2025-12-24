@@ -1,4 +1,4 @@
-package com.xkball.dyson_cube_program.client.render_pipeline.uniform;
+package com.xkball.dyson_cube_program.client.b3d.uniform;
 
 import com.xkball.dyson_cube_program.api.client.UpdateWhen;
 import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;

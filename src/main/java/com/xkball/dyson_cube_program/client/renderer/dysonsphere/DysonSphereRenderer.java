@@ -7,11 +7,12 @@ import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ISTD140Writer;
 import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
-import com.xkball.dyson_cube_program.client.render_pipeline.DCPRenderPipelines;
-import com.xkball.dyson_cube_program.client.render_pipeline.mesh.InstanceInfo;
-import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundle;
-import com.xkball.dyson_cube_program.client.render_pipeline.mesh.MeshBundleWithRenderPipeline;
-import com.xkball.dyson_cube_program.client.render_pipeline.uniform.TransMatColor;
+import com.xkball.dyson_cube_program.client.b3d.extension.GLCommandList;
+import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
+import com.xkball.dyson_cube_program.client.b3d.mesh.InstanceInfo;
+import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundle;
+import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundleWithRenderPipeline;
+import com.xkball.dyson_cube_program.client.b3d.uniform.TransMatColor;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonNodeData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
@@ -103,10 +104,12 @@ public class DysonSphereRenderer {
     
     public void render(PoseStack poseStack){
         poseStack.pushPose();
-        
+        var cmdList = new GLCommandList();
         for(var entry : meshes.entrySet()){
-            entry.getValue().render(poseStack);
+            entry.getValue().render(poseStack,cmdList);
         }
+        cmdList.draw();
+        cmdList.close();
         poseStack.popPose();
     }
     
@@ -223,7 +226,6 @@ public class DysonSphereRenderer {
     private void renderDysonShell(PoseStack poseStack, IntObjectMap<DysonNodeData> nodes, DysonSphereLayerData layer, Consumer<PoseStack> setup, Quaternionf orbit){
         var shellBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
-        float ss = 1;
         for(var shell : shells){
             assert shell.nodes().size() >= 3;
             var color = ColorUtils.abgrToArgb(shell.color());
@@ -239,7 +241,6 @@ public class DysonSphereRenderer {
             var mat = centerLL.rotationTo(targetLL);
             poseStack.pushPose();
             var s = quads.getFirst().a().length();
-            ss = s;
             poseStack.scale(s,s,s);
             for(var node : HexGrid.LEVEL8.map.stream().flatMap(List::stream).filter(node -> node.type == HexGrid.NodeType.R00).toList()){
                 var pos = mat.transformPosition(node.spherePos,new Vector3f());

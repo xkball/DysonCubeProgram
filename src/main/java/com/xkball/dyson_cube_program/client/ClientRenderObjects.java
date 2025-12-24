@@ -3,14 +3,17 @@ package com.xkball.dyson_cube_program.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.xkball.dyson_cube_program.api.client.IEndFrameListener;
 import com.xkball.dyson_cube_program.api.client.IUpdatable;
+import com.xkball.dyson_cube_program.client.b3d.extension.StateObjectCache;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.neoforged.neoforge.client.event.lifecycle.ClientStoppedEvent;
+import org.lwjgl.opengl.GLCapabilities;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClientRenderObjects {
     
+    public static boolean SUPPORT_NV_COMMAND_LIST = false;
     public final List<AutoCloseable> closeOnExit = new ArrayList<>();
     public final List<IEndFrameListener> endFrame = new ArrayList<>();
     public final List<IUpdatable> everyFrame = new ArrayList<>();
@@ -19,6 +22,13 @@ public class ClientRenderObjects {
     
     public ClientRenderObjects() {
     
+    }
+    
+    public static void init(GLCapabilities capabilities){
+        INSTANCE = new ClientRenderObjects();
+        SUPPORT_NV_COMMAND_LIST = capabilities.GL_NV_command_list;
+        StateObjectCache.INSTANCE = new StateObjectCache();
+        ClientRenderObjects.INSTANCE.addCloseOnExit(StateObjectCache.INSTANCE);
     }
     
     public void addCloseOnExit(AutoCloseable obj) {

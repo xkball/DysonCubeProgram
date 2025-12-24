@@ -1,6 +1,6 @@
 package com.xkball.dyson_cube_program.api.client.mixin;
 
-import com.xkball.dyson_cube_program.client.render_pipeline.uniform.SSBOIndexStorage;
+import com.xkball.dyson_cube_program.client.b3d.uniform.SSBOIndexStorage;
 
 import java.util.Map;
 
