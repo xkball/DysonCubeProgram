@@ -7,7 +7,7 @@ import com.mojang.blaze3d.opengl.GlRenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.shaders.ShaderSource;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedGLProgram;
-import com.xkball.dyson_cube_program.client.b3d.extension.FakeCommandEncoder;
+import com.xkball.dyson_cube_program.client.b3d.extension.CmdListCommandEncoder;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.ExtendedRenderPipeline;
 import com.xkball.dyson_cube_program.client.b3d.uniform.SSBOIndexStorage;
 import org.lwjgl.opengl.GL43;
@@ -22,7 +22,7 @@ public class MixinGLDevice {
     
     @Inject(method = "<init>",at = @At("RETURN"))
     public void afterInit(long p_410629_, int p_410525_, boolean p_409747_, ShaderSource p_460964_, boolean p_410647_, CallbackInfo ci){
-        FakeCommandEncoder.INSTANCE = new FakeCommandEncoder((GlDevice)(Object) this);
+        CmdListCommandEncoder.INSTANCE = new CmdListCommandEncoder((GlDevice)(Object) this);
     }
     
     @Inject(method = "compileProgram", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/opengl/GlProgram;setupUniforms(Ljava/util/List;Ljava/util/List;)V", shift = At.Shift.AFTER))

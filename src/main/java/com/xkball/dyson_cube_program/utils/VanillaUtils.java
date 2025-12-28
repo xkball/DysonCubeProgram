@@ -73,6 +73,14 @@ public class VanillaUtils {
         }
     }
     
+    public static int getAddrHi(long addr){
+        return (int)(addr >>> 32);
+    }
+    
+    public static int getAddrLo(long addr){
+        return (int)addr;
+    }
+    
     @SuppressWarnings("SuspiciousNameCombination")
     public static Vec2 rotate90FromBlockCenterYP(Vec2 point, int times) {
         times = times % 4;

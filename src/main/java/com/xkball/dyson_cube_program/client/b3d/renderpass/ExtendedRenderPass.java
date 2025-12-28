@@ -5,10 +5,10 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.xkball.dyson_cube_program.ClientConfig;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedRenderPass;
-import com.xkball.dyson_cube_program.client.ClientRenderObjects;
-import com.xkball.dyson_cube_program.client.b3d.extension.FakeCommandEncoder;
+import com.xkball.dyson_cube_program.client.b3d.extension.CmdListCommandEncoder;
 import com.xkball.dyson_cube_program.client.b3d.extension.GLCommandList;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.ExtendedRenderPipeline;
 import org.jetbrains.annotations.Nullable;
@@ -48,9 +48,9 @@ public class ExtendedRenderPass extends DelegatedRenderPass{
     
     @Override
     public void drawIndexed(int firstIndex, int index, int indexCount, int primCount) {
-        if(cmdList != null && pipeline != null && !ExtendedRenderPipeline.haveSSBO(pipeline) && ClientRenderObjects.SUPPORT_NV_COMMAND_LIST) {
-            FakeCommandEncoder.INSTANCE.cmdList = cmdList;
-            FakeCommandEncoder.INSTANCE.executeDraw(this.getGlRenderPass(), firstIndex, index, indexCount, this.indexType, primCount);
+        if(cmdList != null && pipeline != null && !ExtendedRenderPipeline.haveSSBO(pipeline) && ClientConfig.useNvCommandList()) {
+            CmdListCommandEncoder.INSTANCE.cmdList = cmdList;
+            CmdListCommandEncoder.INSTANCE.executeDraw(this.getGlRenderPass(), firstIndex, index, indexCount, this.indexType, primCount);
         }
         else {
             super.drawIndexed(firstIndex, index, indexCount, primCount);
@@ -59,9 +59,9 @@ public class ExtendedRenderPass extends DelegatedRenderPass{
     
     @Override
     public void draw(int firstIndex, int indexCount) {
-        if(cmdList != null && pipeline != null && !ExtendedRenderPipeline.haveSSBO(pipeline) && ClientRenderObjects.SUPPORT_NV_COMMAND_LIST) {
-            FakeCommandEncoder.INSTANCE.cmdList = cmdList;
-            FakeCommandEncoder.INSTANCE.executeDraw(this.getGlRenderPass(), firstIndex, 0, indexCount, null, 1);
+        if(cmdList != null && pipeline != null && !ExtendedRenderPipeline.haveSSBO(pipeline) && ClientConfig.useNvCommandList()) {
+            CmdListCommandEncoder.INSTANCE.cmdList = cmdList;
+            CmdListCommandEncoder.INSTANCE.executeDraw(this.getGlRenderPass(), firstIndex, 0, indexCount, null, 1);
         }
         else {
             super.draw(firstIndex, indexCount);

@@ -26,7 +26,7 @@ public class DysonCubeProgram {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public DysonCubeProgram(IEventBus modEventBus, ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
         DCPTempReg.init(modEventBus);
     }
 

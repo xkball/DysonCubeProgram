@@ -14,6 +14,8 @@ import java.util.List;
 public class ClientRenderObjects {
     
     public static boolean SUPPORT_NV_COMMAND_LIST = false;
+    public static boolean SUPPORT_NV_SHADER_BUFFER_LOAD = false;
+
     public final List<AutoCloseable> closeOnExit = new ArrayList<>();
     public final List<IEndFrameListener> endFrame = new ArrayList<>();
     public final List<IUpdatable> everyFrame = new ArrayList<>();
@@ -27,6 +29,7 @@ public class ClientRenderObjects {
     public static void init(GLCapabilities capabilities){
         INSTANCE = new ClientRenderObjects();
         SUPPORT_NV_COMMAND_LIST = capabilities.GL_NV_command_list;
+        SUPPORT_NV_SHADER_BUFFER_LOAD = capabilities.GL_NV_shader_buffer_load;
         StateObjectCache.INSTANCE = new StateObjectCache();
         ClientRenderObjects.INSTANCE.addCloseOnExit(StateObjectCache.INSTANCE);
     }

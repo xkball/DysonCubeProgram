@@ -1,6 +1,7 @@
 package com.xkball.dyson_cube_program.utils;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlDevice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
@@ -28,6 +29,7 @@ import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuDevice;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.NVShaderBufferLoad;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -119,6 +121,11 @@ public class ClientUtils {
         }
     }
     
+    public static long getNamedBufferAddrNV(int buffer){
+        var result = NVShaderBufferLoad.glGetNamedBufferParameterui64NV(buffer, NVShaderBufferLoad.GL_BUFFER_GPU_ADDRESS_NV);
+        NVShaderBufferLoad.glMakeNamedBufferResidentNV(buffer, GlConst.GL_READ_ONLY);
+        return result;
+    }
     public static class SkyHelper{
         public static final List<StarData> stars = new ArrayList<>();
     

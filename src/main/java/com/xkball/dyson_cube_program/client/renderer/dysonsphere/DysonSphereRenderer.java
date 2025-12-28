@@ -7,7 +7,6 @@ import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ISTD140Writer;
 import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
-import com.xkball.dyson_cube_program.client.b3d.extension.GLCommandList;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.b3d.mesh.InstanceInfo;
 import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundle;
@@ -104,12 +103,11 @@ public class DysonSphereRenderer {
     
     public void render(PoseStack poseStack){
         poseStack.pushPose();
-        var cmdList = new GLCommandList();
+        //var cmdList = new GLCommandList();
         for(var entry : meshes.entrySet()){
-            entry.getValue().render(poseStack,cmdList);
+            entry.getValue().render(poseStack);
         }
-        cmdList.draw();
-        cmdList.close();
+        //cmdList.close();
         poseStack.popPose();
     }
     
