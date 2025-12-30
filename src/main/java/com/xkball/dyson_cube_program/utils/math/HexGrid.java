@@ -132,7 +132,7 @@ public class HexGrid {
             return result;
         }
         
-        public List<List<Vector3f>> makeQuads(Matrix4f mat, List<Quad> quads, List<Pair<Vector3f,Vector3f>> sides, boolean fullCheck){
+        public List<List<Vector3f>> makeQuads(List<Quad> quads, List<Pair<Vector3f,Vector3f>> sides, boolean fullCheck){
             if(type != NodeType.CENTER) return List.of();
             var result = new ArrayList<List<Vector3f>>(6);
             if(!fullCheck){
@@ -145,7 +145,7 @@ public class HexGrid {
             }
             else{
                 for(var n : neighbors()){
-                    n.contextState = SphereGeometryUtils.insideQuads(mat.transformPosition(n.spherePos,new Vector3f()), quads);
+                    n.contextState = SphereGeometryUtils.insideQuads(n.contextPos, quads);
                 }
                 if(n000 != null && n060 != null) makeEdgeQuads(result,sides,this,n000,n060);
                 if(n060 != null && n120 != null) makeEdgeQuads(result,sides,this,n060,n120);
@@ -177,8 +177,8 @@ public class HexGrid {
                     var bcn = findIntersection(sides,b,c);
                     var ban = findIntersection(sides,b,a);
                     if(bcn != null && ban != null) {
-                        list.add(List.of(b.contextPos,ban,bcn));
-                        list.add(List.of(ban,c.contextPos,bcn));
+                        list.add(List.of(a.contextPos,ban,c.contextPos));
+                        list.add(List.of(ban,bcn,c.contextPos));
                     }
                     else list.add(List.of(a.contextPos,b.contextPos,c.contextPos));
                 }
@@ -186,8 +186,8 @@ public class HexGrid {
                     var can = findIntersection(sides,c,a);
                     var cbn = findIntersection(sides,c,b);
                     if(can != null && cbn != null) {
-                        list.add(List.of(c.contextPos,can,cbn));
-                        list.add(List.of(can,b.contextPos,cbn));
+                        list.add(List.of(a.contextPos,b.contextPos,cbn));
+                        list.add(List.of(a.contextPos,cbn,can));
                     }
                     else list.add(List.of(a.contextPos,b.contextPos,c.contextPos));
                 }

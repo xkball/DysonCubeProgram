@@ -147,15 +147,9 @@ public class SphereGeometryUtils {
         var l1bn = l1b.normalize(new Vector3f());
         var l2an = l2a.normalize(new Vector3f());
         var l2bn = l2b.normalize(new Vector3f());
-        var n1 = l1an.cross(l1bn, new Vector3f());
-        var n2 = l2an.cross(l2bn, new Vector3f());
-        if (n1.lengthSquared() < 1e-10f || n2.lengthSquared() < 1e-10f) {
-            return null;
-        }
-        var v = n1.normalize().cross(n2.normalize(), new Vector3f());
-        if (v.lengthSquared() < 1e-10f) {
-            return null;
-        }
+        var n1 = l1an.cross(l1bn, new Vector3f()).normalize();
+        var n2 = l2an.cross(l2bn, new Vector3f()).normalize();
+        var v = n1.cross(n2, new Vector3f()).normalize();
         v.normalize();
         var nv = v.negate(new Vector3f());
         

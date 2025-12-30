@@ -233,14 +233,14 @@ public class DysonSphereRenderer {
             var s = quads.getFirst().a().length();
             poseStack.scale(s,s,s);
             var filteredNodes = filterNodesInShell(HexGrid.LEVEL7, mat, quads);
-            var matAll =poseStack.last().pose().mul(mat,new Matrix4f());
-            var sides = shell.getSides(nodes).stream().map(p -> Pair.of(matAll.transformPosition(p.getFirst().normalize(new Vector3f())),matAll.transformPosition(p.getSecond().normalize(new Vector3f())))).toList();
+            var pose = poseStack.last();
+            var sides = shell.getSides(nodes).stream().map(p -> Pair.of(p.getFirst().normalize(new Vector3f()),p.getSecond().normalize(new Vector3f()))).toList();
             for(var node : filteredNodes){
-                node.transform(matAll);
-                for(var quad : node.makeQuads(mat, quads, sides, !node.contextInsideQuad())){
-                    shellBuilder.addVertex(quad.get(0)).setColor(color);
-                    shellBuilder.addVertex(quad.get(1)).setColor(color);
-                    shellBuilder.addVertex(quad.get(2)).setColor(color);
+                node.transform(mat);
+                for(var quad : node.makeQuads(quads, sides, !node.contextInsideQuad())){
+                    shellBuilder.addVertex(pose,quad.get(0)).setColor(color);
+                    shellBuilder.addVertex(pose,quad.get(1)).setColor(color);
+                    shellBuilder.addVertex(pose,quad.get(2)).setColor(color);
                 }
             }
             poseStack.popPose();
