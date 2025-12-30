@@ -1,12 +1,16 @@
 package com.xkball.dyson_cube_program.common.dysonsphere.data;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.utils.CodecUtils;
 import io.netty.buffer.ByteBuf;
+import io.netty.util.collection.IntObjectMap;
 import net.minecraft.network.codec.StreamCodec;
+import org.joml.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NonNullByDefault
@@ -50,4 +54,13 @@ public record DysonShellData(
         }
     };
     
+    public List<Pair<Vector3f,Vector3f>> getSides(IntObjectMap<DysonNodeData> nodes){
+        var result = new ArrayList<Pair<Vector3f,Vector3f>>();
+        for (int i = 0; i < this.nodes.size(); i++) {
+            var a = nodes.get(this.nodes.get(i)).pos();
+            var b = nodes.get(this.nodes.get((i+1)%this.nodes.size())).pos();
+            result.add(Pair.of(new Vector3f(a),new Vector3f(b)));
+        }
+        return result;
+    }
 }

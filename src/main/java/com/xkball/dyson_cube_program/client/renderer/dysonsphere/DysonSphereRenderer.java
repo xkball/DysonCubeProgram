@@ -2,6 +2,8 @@ package com.xkball.dyson_cube_program.client.renderer.dysonsphere;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
@@ -17,11 +19,13 @@ import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonNodeData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSphereLayerData;
+import com.xkball.dyson_cube_program.graph.BFSHandler;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import com.xkball.dyson_cube_program.utils.math.HexGrid;
 import com.xkball.dyson_cube_program.utils.math.LatAndLon;
 import com.xkball.dyson_cube_program.utils.math.MathConstants;
+import com.xkball.dyson_cube_program.utils.math.Quad;
 import com.xkball.dyson_cube_program.utils.math.SphereGeometryUtils;
 import io.netty.util.collection.IntObjectMap;
 import net.minecraft.client.Minecraft;
@@ -32,6 +36,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -44,6 +49,7 @@ import java.util.function.Consumer;
 @NonNullByDefault
 public class DysonSphereRenderer {
     
+    private static final Logger LOGGER = LogUtils.getLogger();
     public DysonSpareBlueprintData data;
     private final Map<RenderPipeline, MeshBundle<RenderPipeline>> meshes = new HashMap<>();
     private static final int defaultColor = ColorUtils.getColor(73,140,163,255);
@@ -51,14 +57,15 @@ public class DysonSphereRenderer {
         this.data = data;
     }
     
-    public void buildMeshes(){
+    public long buildMeshes(){
+        var time = System.currentTimeMillis();
         for(var entry : meshes.entrySet()){
             entry.getValue().close();
         }
         meshes.clear();
         meshes.put(DCPRenderPipelines.POSITION_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_color_instanced", DCPRenderPipelines.POSITION_COLOR_INSTANCED));
         meshes.put(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_tex_color_instanced", DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED));
-        meshes.put(RenderPipelines.DEBUG_QUADS, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",RenderPipelines.DEBUG_QUADS));
+        meshes.put(DCPRenderPipelines.DEBUG_TRIANGLES, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",DCPRenderPipelines.DEBUG_TRIANGLES));
         meshes.put(DCPRenderPipelines.DEBUG_LINE, new MeshBundleWithRenderPipeline("dyson_sphere_debug_lines",DCPRenderPipelines.DEBUG_LINE));
         var elements = data.type().elementTypes;
         if(elements.contains(DysonElementType.LAYER)){
@@ -81,24 +88,9 @@ public class DysonSphereRenderer {
                 renderSingleSwarm(data.swarmOrbits().get(i),1000,data.sailOrbitColorHSVA().get(i));
             }
         }
-//        var builder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
-//        var poseStack = new PoseStack();
-//        poseStack.pushPose();
-//        var s = 12000;
-//        poseStack.scale(s,s,s);
-//        HexGrid.LEVEL7.rebuildMap();
-//        var list =  HexGrid.LEVEL7.map.stream().flatMap(List::stream)
-//                //.filter(node -> node.type == HexGrid.NodeType.R00)
-//                .toList();
-//        for(var node : list){
-//            for(var n : node.neighbors()){
-//                builder.addVertex(poseStack.last(), node.spherePos).setColor(-1);
-//                builder.addVertex(poseStack.last(), n.spherePos).setColor(-1);
-//            }
-//        }
-//        poseStack.popPose();
-//        var mesh = builder.buildOrThrow();
-//        meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,(ss) -> {}));
+        time = System.currentTimeMillis() - time;
+        LOGGER.info("DysonSphereRenderer buildMeshes time: {}",time);
+        return time;
     }
     
     public void render(PoseStack poseStack){
@@ -222,7 +214,7 @@ public class DysonSphereRenderer {
     }
     
     private void renderDysonShell(PoseStack poseStack, IntObjectMap<DysonNodeData> nodes, DysonSphereLayerData layer, Consumer<PoseStack> setup, Quaternionf orbit){
-        var shellBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_LINE);
+        var shellBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_TRIANGLES);
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
         for(var shell : shells){
             assert shell.nodes().size() >= 3;
@@ -240,24 +232,23 @@ public class DysonSphereRenderer {
             poseStack.pushPose();
             var s = quads.getFirst().a().length();
             poseStack.scale(s,s,s);
-            for(var node : HexGrid.LEVEL8.map.stream().flatMap(List::stream).filter(node -> node.type == HexGrid.NodeType.R00).toList()){
-                var pos = mat.transformPosition(node.spherePos,new Vector3f());
-                if(quads.stream().anyMatch(q -> SphereGeometryUtils.isInside(pos,q))){
-                    for(var n : node.neighbors(HexGrid.NodeType.R60)){
-                        var nPos = mat.transformPosition(n.spherePos,new Vector3f());
-                        shellBuilder.addVertex(poseStack.last(), pos).setColor(color);
-                        shellBuilder.addVertex(poseStack.last(), nPos).setColor(color);
-                    }
+            var filteredNodes = filterNodesInShell(HexGrid.LEVEL7, mat, quads);
+            var matAll =poseStack.last().pose().mul(mat,new Matrix4f());
+            var sides = shell.getSides(nodes).stream().map(p -> Pair.of(matAll.transformPosition(p.getFirst().normalize(new Vector3f())),matAll.transformPosition(p.getSecond().normalize(new Vector3f())))).toList();
+            for(var node : filteredNodes){
+                node.transform(matAll);
+                for(var quad : node.makeQuads(mat, quads, sides, !node.contextInsideQuad())){
+                    shellBuilder.addVertex(quad.get(0)).setColor(color);
+                    shellBuilder.addVertex(quad.get(1)).setColor(color);
+                    shellBuilder.addVertex(quad.get(2)).setColor(color);
                 }
-         
             }
-            
             poseStack.popPose();
         }
 
         if(!shells.isEmpty()) {
             var mesh = shellBuilder.buildOrThrow();
-            meshes.computeIfPresent(DCPRenderPipelines.DEBUG_LINE,(k,v)-> v.appendImmediately(mesh,setup));
+            meshes.computeIfPresent(DCPRenderPipelines.DEBUG_TRIANGLES,(k,v)-> v.appendImmediately(mesh,setup));
         }
     }
     
@@ -291,7 +282,42 @@ public class DysonSphereRenderer {
         if(orbit == null) return p -> {};
         return p -> {
             p.mulPose(orbit.rotation());
-            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/10));
+            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/80));
         };
     }
+    
+    public List<HexGrid.Node> filterNodesInShell(HexGrid grid, Matrix4f mat, List<Quad> quads){
+        var center = grid.getNode(grid.layers*2/3,grid.layers/3);
+        if(center != null) {
+            var list = new ArrayList<HexGrid.Node>();
+            var bsf = new BFSHandler<HexGrid.Node>((n,i) -> {
+                list.add(n);
+                return SphereGeometryUtils.insideQuads(mat.transformPosition(n.spherePos,n.contextPos), quads);
+            });
+            bsf.traverse(center.nearCenters().getFirst(), HexGrid.Node::nearCenters,-1);
+            if(list.size() > 10) return list;
+        }
+        var list = grid.map.stream().flatMap(List::stream).filter(node -> node.type == HexGrid.NodeType.CENTER).toList();
+        List<HexGrid.Node> result = new ArrayList<>();
+        for (HexGrid.Node node : list) {
+            var pos0 = mat.transformPosition(node.spherePos, node.contextPos);
+            var flag = SphereGeometryUtils.insideQuads(pos0, quads);
+            if (!flag) {
+                boolean b = false;
+                for (HexGrid.Node nn : node.neighbors()) {
+                    if (SphereGeometryUtils.insideQuads(mat.transformPosition(nn.spherePos, nn.contextPos), quads)) {
+                        b = true;
+                        break;
+                    }
+                }
+                flag = b;
+            }
+            if (flag) {
+                result.add(node);
+            }
+        }
+        return result;
+    }
+    
+
 }

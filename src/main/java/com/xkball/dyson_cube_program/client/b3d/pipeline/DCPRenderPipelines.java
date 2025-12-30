@@ -46,6 +46,20 @@ public class DCPRenderPipelines {
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.DEBUG_LINES)
             .build();
     
+    public static final RenderPipeline DEBUG_QUADS = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+            .withLocation(VanillaUtils.modRL("pipeline/debug_quads"))
+            .withDepthWrite(true)
+            .withCull(false)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+            .build();
+    
+    public static final RenderPipeline DEBUG_TRIANGLES = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
+            .withLocation(VanillaUtils.modRL("pipeline/debug_triangles"))
+            .withDepthWrite(true)
+            .withCull(false)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.TRIANGLES)
+            .build();
+    
     public static final ExtendedRenderPipeline BLOOM_DOWN_SAMPLER = ExtendedRenderPipeline.extendedbuilder()
             .withVertexFormat(DefaultVertexFormat.POSITION, VertexFormat.Mode.QUADS)
             .withLocation(VanillaUtils.modRL("pipeline/bloom_down_sampler"))

@@ -1,5 +1,6 @@
 package com.xkball.dyson_cube_program.client;
 
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.logging.LogUtils;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.renderer.block_entity.DebugEntityBlockRenderer;
@@ -8,6 +9,7 @@ import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprint
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -59,32 +61,50 @@ public class ClientEvent {
         event.getDispatcher().register(
                 Commands.literal("dyson_cube_program")
                         .then(Commands.literal("client")
-                                .then(Commands.literal("rebuild_mesh").executes(
-                                        s -> {
-                                            var renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().renderers.get(DCPTempReg.DEBUG_ENTITY_BLOCK_ENTITY.get());
-                                            if(renderer instanceof DebugEntityBlockRenderer renderer_){
-                                                renderer_.sphereRenderer.buildMeshes();
-                                            }
-                                            return 0;
-                                        }
-                                ))
-                                .then(Commands.literal("rebuild_mesh_from_clipboard").executes(
-                                    s -> {
-                                        var str = Minecraft.getInstance().keyboardHandler.getClipboard();
-                                        try {
-                                            var data = DysonSpareBlueprintData.parse(str);
-                                            var renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().renderers.get(DCPTempReg.DEBUG_ENTITY_BLOCK_ENTITY.get());
-                                            if(renderer instanceof DebugEntityBlockRenderer renderer_){
-                                                renderer_.sphereRenderer.data = data;
-                                                renderer_.sphereRenderer.buildMeshes();
-                                            }
-                                        }catch (Exception e){
-                                            s.getSource().sendSystemMessage(Component.literal("Failed parse dyson sphere data. Please check the error in log."));
-                                            LOGGER.error("Failed parse dyson sphere data", e);
-                                        }
-                                        return 0;
-                                    }
-                                ))
+                                .then(Commands.literal("rebuild_mesh").executes(ClientEvent::rebuildDysonSphereRendererMesh))
+                                .then(Commands.literal("rebuild_mesh_from_clipboard").executes(ClientEvent::rebuildDysonSphereRendererMeshFromClipboard))
+                                .then(Commands.literal("mesh_build_benchmark").executes(ClientEvent::meshBuildBenchmark))
         ));
+    }
+    
+    public static int rebuildDysonSphereRendererMesh(CommandContext<CommandSourceStack> source){
+        var renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().renderers.get(DCPTempReg.DEBUG_ENTITY_BLOCK_ENTITY.get());
+        if(renderer instanceof DebugEntityBlockRenderer renderer_){
+            var time = renderer_.sphereRenderer.buildMeshes();
+            source.getSource().sendSystemMessage(Component.literal("DysonSphereRenderer buildMeshes time: "+time+"ms"));
+        }
+        return 0;
+    }
+    
+    public static int rebuildDysonSphereRendererMeshFromClipboard(CommandContext<CommandSourceStack> source){
+        var str = Minecraft.getInstance().keyboardHandler.getClipboard();
+        try {
+            var data = DysonSpareBlueprintData.parse(str);
+            var renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().renderers.get(DCPTempReg.DEBUG_ENTITY_BLOCK_ENTITY.get());
+            if(renderer instanceof DebugEntityBlockRenderer renderer_){
+                renderer_.sphereRenderer.data = data;
+                var time = renderer_.sphereRenderer.buildMeshes();
+                source.getSource().sendSystemMessage(Component.literal("DysonSphereRenderer buildMeshes time: "+time+"ms"));
+            }
+        }catch (Exception e){
+            source.getSource().sendSystemMessage(Component.literal("Failed parse dyson sphere data. Please check the error in log."));
+            LOGGER.error("Failed parse dyson sphere data", e);
+        }
+        return 0;
+    }
+    
+    public static int meshBuildBenchmark(CommandContext<CommandSourceStack> source){
+        var renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().renderers.get(DCPTempReg.DEBUG_ENTITY_BLOCK_ENTITY.get());
+        if(renderer instanceof DebugEntityBlockRenderer renderer_){
+            for (int i = 0; i < 10; i++) {
+                renderer_.sphereRenderer.buildMeshes();
+            }
+            var time = 0L;
+            for (int i = 0; i < 10; i++) {
+                time += renderer_.sphereRenderer.buildMeshes();
+            }
+            source.getSource().sendSystemMessage(Component.literal("DysonSphereRenderer buildMeshes benchmark avg time: "+time/10+"ms"));
+        }
+        return 0;
     }
 }

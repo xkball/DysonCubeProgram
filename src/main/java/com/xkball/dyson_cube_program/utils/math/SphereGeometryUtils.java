@@ -3,6 +3,7 @@ package com.xkball.dyson_cube_program.utils.math;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import org.joml.Vector3f;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -77,12 +78,17 @@ public class SphereGeometryUtils {
         return true;
     }
     
+    private static final Vector3f pn = new Vector3f();
+    private static final Vector3f an = new Vector3f();
+    private static final Vector3f bn = new Vector3f();
+    private static final Vector3f cn = new Vector3f();
+    private static final Vector3f dn = new Vector3f();
     public static boolean isInside(Vector3f p, Quad quad){
-        var pn = p.normalize(new Vector3f());
-        var an = quad.a().normalize(new Vector3f());
-        var bn = quad.b().normalize(new Vector3f());
-        var cn = quad.c().normalize(new Vector3f());
-        var dn = quad.d().normalize(new Vector3f());
+        p.normalize(pn);
+        quad.a().normalize(an);
+        quad.b().normalize(bn);
+        quad.c().normalize(cn);
+        quad.d().normalize(dn);
         var pd = pn.dot(an);
         if(pd < 0) return false;
         pd = pn.dot(bn);
@@ -107,7 +113,6 @@ public class SphereGeometryUtils {
         return true;
     }
     
-    
     public static Vector3f slerp(Vector3f a, Vector3f b, float t) {
         var dest = new Vector3f();
         float dot = a.dot(b);
@@ -125,5 +130,49 @@ public class SphereGeometryUtils {
         
         dest.set(a).mul(w0).add(new Vector3f(b).mul(w1));
         return dest;
+    }
+    
+    @SuppressWarnings("ForLoopReplaceableByForEach")
+    public static boolean insideQuads(Vector3f pos, List<Quad> quads){
+        for (int i = 0; i < quads.size(); i++) {
+            if (SphereGeometryUtils.isInside(pos, quads.get(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public static @Nullable Vector3f intersection(Vector3f l1a, Vector3f l1b, Vector3f l2a, Vector3f l2b){
+        var l1an = l1a.normalize(new Vector3f());
+        var l1bn = l1b.normalize(new Vector3f());
+        var l2an = l2a.normalize(new Vector3f());
+        var l2bn = l2b.normalize(new Vector3f());
+        var n1 = l1an.cross(l1bn, new Vector3f());
+        var n2 = l2an.cross(l2bn, new Vector3f());
+        if (n1.lengthSquared() < 1e-10f || n2.lengthSquared() < 1e-10f) {
+            return null;
+        }
+        var v = n1.normalize().cross(n2.normalize(), new Vector3f());
+        if (v.lengthSquared() < 1e-10f) {
+            return null;
+        }
+        v.normalize();
+        var nv = v.negate(new Vector3f());
+        
+        boolean p1on = onArc(v, l1an, l1bn) && onArc(v, l2an, l2bn);
+        boolean p2on = onArc(nv, l1an, l1bn) && onArc(nv, l2an, l2bn);
+        if (p1on ^ p2on) {
+            return p1on ? v : nv;
+        }
+        
+        return null;
+    }
+    
+    public static boolean onArc(Vector3f p, Vector3f a, Vector3f b) {
+        var ap = a.cross(p, new Vector3f()).normalize();
+        var ab = a.cross(b, new Vector3f()).normalize();
+        var bp = b.cross(p, new Vector3f()).normalize();
+        var ba = b.cross(a, new Vector3f()).normalize();
+        return ap.dot(ab) >= 0 && bp.dot(ba) >= 0;
     }
 }
