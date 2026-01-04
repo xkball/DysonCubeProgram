@@ -65,7 +65,7 @@ public class DysonSphereRenderer {
         meshes.clear();
         meshes.put(DCPRenderPipelines.POSITION_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_color_instanced", DCPRenderPipelines.POSITION_COLOR_INSTANCED));
         meshes.put(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_tex_color_instanced", DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED));
-        meshes.put(DCPRenderPipelines.DEBUG_TRIANGLES, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",DCPRenderPipelines.DEBUG_TRIANGLES));
+        meshes.put(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",DCPRenderPipelines.POSITION_DUAL_TEX_COLOR));
         meshes.put(DCPRenderPipelines.DEBUG_LINE, new MeshBundleWithRenderPipeline("dyson_sphere_debug_lines",DCPRenderPipelines.DEBUG_LINE));
         var elements = data.type().elementTypes;
         if(elements.contains(DysonElementType.LAYER)){
@@ -128,7 +128,7 @@ public class DysonSphereRenderer {
             var nextPos = LatAndLon.ofDegree(spPos.getLatDegree()+10,spPos.getLonDegree()+10).toSperePos();
             poseStack.pushPose();
             poseStack.translate(pos.x,pos.y,pos.z);
-            poseStack.translate(new Vec3(pos.mul(0.002f,new Vector3f())));
+            poseStack.translate(new Vec3(pos.mul(0.004f,new Vector3f())));
             poseStack.scale(400,400,400);
             poseStack.mulPose(facingYOriginFacingXTo(pos,nextPos));
             transformList.add(new TransMatColor(new Matrix4f(poseStack.last().pose()), ColorUtils.Vectorization.argbColor(color)));
@@ -196,11 +196,11 @@ public class DysonSphereRenderer {
                 var pos = posList.get(i);
                 var nextPos = posList.get(i+1);
                 poseStack.pushPose();
-                poseStack.translate(pos.x(),pos.y(),pos.z());
+                poseStack.translate(pos.x()*0.999f,pos.y()*0.999f,pos.z()*0.999f);
                 poseStack.mulPose(facingYOriginFacingXTo(pos,nextPos));
-                poseStack.scale(l*d,200,200);
+                poseStack.scale(l*d,500,300);
                 //面反向了 原因未知 但是无所谓再反一次就行
-                poseStack.scale(-1,-1,-1);
+                poseStack.scale(-1,-1f,-1);
                 transformList.add(new TransMatColor(new Matrix4f(poseStack.last().pose()),ColorUtils.Vectorization.argbColor(color)));
                 poseStack.popPose();
             }
@@ -214,7 +214,8 @@ public class DysonSphereRenderer {
     }
     
     private void renderDysonShell(PoseStack poseStack, IntObjectMap<DysonNodeData> nodes, DysonSphereLayerData layer, Consumer<PoseStack> setup, Quaternionf orbit){
-        var shellBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DEBUG_TRIANGLES);
+        var shellBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR);
+        var textureFront = ClientUtils.getTextureFromBlockAtlas("dyson-shell-e14");
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
         for(var shell : shells){
             assert shell.nodes().size() >= 3;
@@ -233,22 +234,17 @@ public class DysonSphereRenderer {
             var s = quads.getFirst().a().length();
             poseStack.scale(s,s,s);
             var filteredNodes = filterNodesInShell(HexGrid.LEVEL7, mat, quads);
-            var pose = poseStack.last();
             var sides = shell.getSides(nodes).stream().map(p -> Pair.of(p.getFirst().normalize(new Vector3f()),p.getSecond().normalize(new Vector3f()))).toList();
             for(var node : filteredNodes){
                 node.transform(mat);
-                for(var quad : node.makeQuads(quads, sides, !node.contextInsideQuad())){
-                    shellBuilder.addVertex(pose,quad.get(0)).setColor(color);
-                    shellBuilder.addVertex(pose,quad.get(1)).setColor(color);
-                    shellBuilder.addVertex(pose,quad.get(2)).setColor(color);
-                }
+                node.makeQuads(poseStack.last(),shellBuilder, color, textureFront, quads, sides, !node.contextInsideQuad());
             }
             poseStack.popPose();
         }
 
         if(!shells.isEmpty()) {
             var mesh = shellBuilder.buildOrThrow();
-            meshes.computeIfPresent(DCPRenderPipelines.DEBUG_TRIANGLES,(k,v)-> v.appendImmediately(mesh,setup));
+            meshes.computeIfPresent(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR,(k,v)-> v.appendImmediately(mesh,setup));
         }
     }
     
@@ -282,7 +278,7 @@ public class DysonSphereRenderer {
         if(orbit == null) return p -> {};
         return p -> {
             p.mulPose(orbit.rotation());
-            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/80));
+            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/160000));
         };
     }
     

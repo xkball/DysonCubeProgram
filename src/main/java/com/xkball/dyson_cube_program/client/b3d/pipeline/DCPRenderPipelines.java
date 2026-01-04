@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
+import com.xkball.dyson_cube_program.client.b3d.vertex.DCPVertexFormats;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -38,6 +39,26 @@ public class DCPRenderPipelines {
             .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
             .withSSBO("InstanceTransformColor")
+            .buildExtended();
+    
+    
+    public static final ExtendedRenderPipeline POSITION_DUAL_TEX_COLOR = ExtendedRenderPipeline.extendedbuilder()
+            .withVertexFormat(DCPVertexFormats.POSITION_DUAL_TEX_COLOR, VertexFormat.Mode.TRIANGLES)
+            .withLocation(VanillaUtils.modRL("position_dual_tex_color"))
+            .withVertexShader(VanillaUtils.modRL("core/position_dual_tex_color"))
+            .withFragmentShader(VanillaUtils.modRL("core/position_dual_tex_color"))
+            .withSampler("Sampler0")
+            .bindSampler("Sampler0",() -> {
+                var texture = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+                return Pair.of(texture.getTextureView(),texture.getSampler());
+            })
+            .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+            .withUniform("DualTexOffset", UniformType.UNIFORM_BUFFER)
+            .bindUniform("DualTexOffset", DCPUniforms.DUAL_TEX_OFFSET_UNIFORM)
+            .withUniform("CustomColorModulator", UniformType.UNIFORM_BUFFER)
+            .bindUniform("CustomColorModulator", DCPUniforms.CUSTOM_COLOR_MODULATOR)
+            .withCull(false)
             .buildExtended();
     
     public static final RenderPipeline DEBUG_LINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)

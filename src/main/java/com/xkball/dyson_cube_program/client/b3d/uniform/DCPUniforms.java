@@ -6,6 +6,7 @@ import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import org.joml.Vector2f;
+import org.joml.Vector4f;
 
 public class DCPUniforms {
     
@@ -30,6 +31,26 @@ public class DCPUniforms {
             .putVec2("OutSize", () -> Minecraft.getInstance().getMainRenderTarget().width, () -> Minecraft.getInstance().getMainRenderTarget().height)
             .putFloat("BloomRadius",() -> 1.0f)
             .putFloat("BloomIntensive",() -> 1.7f)
+            .build();
+    
+    public static final UpdatableUBO DUAL_TEX_OFFSET_UNIFORM = new UpdatableUBO.UBOBuilder("dual_tex_offset")
+            .closeOnExit()
+            .updateWhen(UpdateWhen.Reload)
+            .putVec2("Offset", () -> {
+                var textureFront = ClientUtils.getTextureFromBlockAtlas("dyson-shell-e14");
+                var textureBack = ClientUtils.getTextureFromBlockAtlas("dyson-shell-a");
+                var uFront = textureFront.getU0();
+                var uBack = textureBack.getU0();
+                var vFront = textureFront.getV0();
+                var vBack = textureBack.getV0();
+                return new Vector2f(uBack - uFront, vBack - vFront);
+            })
+            .build();
+    
+    //目前仅用于戴森球壳反面渲染 与原版ColorModulator设计显然不同 因此不使用
+    public static final UpdatableUBO CUSTOM_COLOR_MODULATOR = new UpdatableUBO.UBOBuilder("custom_color_modulator")
+            .closeOnExit()
+            .putVec4("CustomColorModulator", Vector4f::new)
             .build();
     
 }

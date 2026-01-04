@@ -49,6 +49,9 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
         if(updateWhen == UpdateWhen.EveryFrame){
             ClientRenderObjects.INSTANCE.addEveryFrameListener(this);
         }
+        else if(updateWhen == UpdateWhen.Reload){
+            ClientRenderObjects.INSTANCE.addReloadListener(this);
+        }
     }
     
     @Override

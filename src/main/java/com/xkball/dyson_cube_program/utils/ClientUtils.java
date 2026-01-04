@@ -25,6 +25,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.data.AtlasIds;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuDevice;
 import org.joml.Matrix3f;
@@ -125,6 +129,10 @@ public class ClientUtils {
         var result = NVShaderBufferLoad.glGetNamedBufferParameterui64NV(buffer, NVShaderBufferLoad.GL_BUFFER_GPU_ADDRESS_NV);
         NVShaderBufferLoad.glMakeNamedBufferResidentNV(buffer, GlConst.GL_READ_ONLY);
         return result;
+    }
+    
+    public static TextureAtlasSprite getTextureFromBlockAtlas(String id){
+        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(VanillaUtils.modRL("block/"+id));
     }
     public static class SkyHelper{
         public static final List<StarData> stars = new ArrayList<>();

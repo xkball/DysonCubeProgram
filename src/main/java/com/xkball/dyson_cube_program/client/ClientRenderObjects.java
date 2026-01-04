@@ -5,6 +5,7 @@ import com.xkball.dyson_cube_program.api.client.IEndFrameListener;
 import com.xkball.dyson_cube_program.api.client.IUpdatable;
 import com.xkball.dyson_cube_program.client.b3d.extension.StateObjectCache;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
+import net.neoforged.neoforge.client.event.ClientResourceLoadFinishedEvent;
 import net.neoforged.neoforge.client.event.lifecycle.ClientStoppedEvent;
 import org.lwjgl.opengl.GLCapabilities;
 
@@ -19,6 +20,7 @@ public class ClientRenderObjects {
     public final List<AutoCloseable> closeOnExit = new ArrayList<>();
     public final List<IEndFrameListener> endFrame = new ArrayList<>();
     public final List<IUpdatable> everyFrame = new ArrayList<>();
+    public final List<IUpdatable> reload = new ArrayList<>();
     
     public static ClientRenderObjects INSTANCE;
     
@@ -50,6 +52,11 @@ public class ClientRenderObjects {
         everyFrame.add(obj);
     }
     
+    public void addReloadListener(IUpdatable obj) {
+        RenderSystem.assertOnRenderThread();
+        reload.add(obj);
+    }
+    
     @SubscribeEventEnhanced
     public static void onGameExit(ClientStoppedEvent event) {
         try {
@@ -60,5 +67,12 @@ public class ClientRenderObjects {
             throw new RuntimeException(e);
         }
         INSTANCE.closeOnExit.clear();
+    }
+    
+    @SubscribeEventEnhanced
+    public static void afterReloadFinish(ClientResourceLoadFinishedEvent event){
+        for(var updatable : INSTANCE.reload) {
+            updatable.update();
+        }
     }
 }

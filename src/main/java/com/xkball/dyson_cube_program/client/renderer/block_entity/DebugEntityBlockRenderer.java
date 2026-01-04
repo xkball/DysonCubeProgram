@@ -2,12 +2,14 @@ package com.xkball.dyson_cube_program.client.renderer.block_entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
+import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
 import com.xkball.dyson_cube_program.client.renderer.dysonsphere.DysonSphereRenderer;
 import com.xkball.dyson_cube_program.common.block_entity.DebugEntityBlockEntity;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
 import com.xkball.dyson_cube_program.test.DysonBluePrintTest;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -34,13 +36,13 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     }
     
     public void render(DebugEntityState blockEntity, PoseStack poseStack) {
+        DCPUniforms.CUSTOM_COLOR_MODULATOR.updateUnsafe(b -> b.putVec4(ColorUtils.Vectorization.argbColor(TheSunRenderer.SUN_COLOR)));
         poseStack.pushPose();
         var scale = 1/5000f;
         poseStack.scale(-1,1,1);
         poseStack.scale(scale, scale, scale);
         sphereRenderer.render(poseStack);
         poseStack.popPose();
-        
         TheSunRenderer.drawSunAt(poseStack,new Vector3f(blockEntity.blockPos.getX(), blockEntity.blockPos.getY(), blockEntity.blockPos.getZ()),TheSunRenderer.SUN_COLOR);
         
 //        try(var renderPass = ClientUtils.createRenderPass("instance_test")){
