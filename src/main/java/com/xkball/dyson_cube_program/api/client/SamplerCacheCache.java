@@ -7,4 +7,6 @@ import com.mojang.blaze3d.textures.GpuSampler;
 public class SamplerCacheCache {
     public static final GpuSampler NEAREST_REPEAT = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST);
     public static final GpuSampler NEAREST_CLAMP = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST);
+    public static final GpuSampler NEAREST_REPEAT_MIPMAP = RenderSystem.getSamplerCache().getRepeat(FilterMode.NEAREST, true);
+    public static final GpuSampler NEAREST_CLAMP_MIPMAP = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.NEAREST, true);
 }

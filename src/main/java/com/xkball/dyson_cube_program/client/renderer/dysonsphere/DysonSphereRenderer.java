@@ -9,6 +9,7 @@ import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ISTD140Writer;
 import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
+import com.xkball.dyson_cube_program.client.DCPTextureAtlas;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.b3d.mesh.InstanceInfo;
 import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundle;
@@ -215,7 +216,7 @@ public class DysonSphereRenderer {
     
     private void renderDysonShell(PoseStack poseStack, IntObjectMap<DysonNodeData> nodes, DysonSphereLayerData layer, Consumer<PoseStack> setup, Quaternionf orbit){
         var shellBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR);
-        var textureFront = ClientUtils.getTextureFromBlockAtlas("dyson-shell-e14");
+        var textureFront = ClientUtils.getTextureFromAtlas(DCPTextureAtlas.DYSON_SHELL_ATLAS, "dyson_shell/dyson-shell-e14");
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
         for(var shell : shells){
             assert shell.nodes().size() >= 3;

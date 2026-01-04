@@ -5,6 +5,7 @@ import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlDevice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderPass;
@@ -25,17 +26,18 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuDevice;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.NVShaderBufferLoad;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -131,9 +133,27 @@ public class ClientUtils {
         return result;
     }
     
-    public static TextureAtlasSprite getTextureFromBlockAtlas(String id){
-        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(VanillaUtils.modRL("block/"+id));
+    public static TextureAtlasSprite getTextureFromAtlas(Identifier atlas, String id){
+        return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(atlas).getSprite(VanillaUtils.modRL(id));
     }
+    
+    public static TextureAtlasSprite getTextureFromAtlas(String id){
+        return getTextureFromAtlas(AtlasIds.BLOCKS, id);
+    }
+    
+    public static @Nullable NativeImage readImage(Identifier rl){
+        NativeImage result;
+        var resource = Minecraft.getInstance().getResourceManager().getResource(rl);
+        if(resource.isEmpty()) return null;
+        try(var stream = resource.get().open()) {
+            result = NativeImage.read(stream);
+        } catch (IOException e) {
+            LOGGER.error("Failed to read image {}", rl, e);
+            return null;
+        }
+        return result;
+    }
+    
     public static class SkyHelper{
         public static final List<StarData> stars = new ArrayList<>();
     

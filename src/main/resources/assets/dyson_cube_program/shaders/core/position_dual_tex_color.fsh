@@ -1,4 +1,4 @@
-#version 330
+#version 400
 
 layout(std140) uniform DynamicTransforms {
     mat4 ModelViewMat;
@@ -25,10 +25,7 @@ out vec4 fragColor;
 void main() {
     vec2 uv = gl_FrontFacing ? texCoordFront : texCoordFront + Offset;
     vec4 color = gl_FrontFacing ? (texture(Sampler0, uv) * vertexColor) : texture(Sampler0, uv) * 0.9 + vertexColor * CCM * 0.1;
-
-    if (color.a == 0.0) {
-        discard;
-    }
-
+//    float lod = textureQueryLod(Sampler0, uv).x;
+//    vec4 color = vec4(lod / 4.0, lod / 4.0, lod / 4.0, 1.0);
     fragColor = color * ColorModulator;
 }

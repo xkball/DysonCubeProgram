@@ -1,6 +1,7 @@
 package com.xkball.dyson_cube_program.client.b3d.uniform;
 
 import com.xkball.dyson_cube_program.api.client.UpdateWhen;
+import com.xkball.dyson_cube_program.client.DCPTextureAtlas;
 import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
@@ -37,8 +38,8 @@ public class DCPUniforms {
             .closeOnExit()
             .updateWhen(UpdateWhen.Reload)
             .putVec2("Offset", () -> {
-                var textureFront = ClientUtils.getTextureFromBlockAtlas("dyson-shell-e14");
-                var textureBack = ClientUtils.getTextureFromBlockAtlas("dyson-shell-a");
+                var textureFront = ClientUtils.getTextureFromAtlas(DCPTextureAtlas.DYSON_SHELL_ATLAS, "dyson_shell/dyson-shell-e14");
+                var textureBack = ClientUtils.getTextureFromAtlas(DCPTextureAtlas.DYSON_SHELL_ATLAS, "dyson_shell/dyson-shell-a");
                 var uFront = textureFront.getU0();
                 var uBack = textureBack.getU0();
                 var vFront = textureFront.getV0();

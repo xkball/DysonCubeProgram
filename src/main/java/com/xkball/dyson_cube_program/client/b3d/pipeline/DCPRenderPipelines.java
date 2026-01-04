@@ -7,6 +7,8 @@ import com.mojang.blaze3d.shaders.UniformType;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
+import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
+import com.xkball.dyson_cube_program.client.DCPTextureAtlas;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.client.b3d.vertex.DCPVertexFormats;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
@@ -49,8 +51,8 @@ public class DCPRenderPipelines {
             .withFragmentShader(VanillaUtils.modRL("core/position_dual_tex_color"))
             .withSampler("Sampler0")
             .bindSampler("Sampler0",() -> {
-                var texture = Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
-                return Pair.of(texture.getTextureView(),texture.getSampler());
+                var texture = Minecraft.getInstance().getTextureManager().getTexture(DCPTextureAtlas.DYSON_SHELL_ATLAS_LOCATION);
+                return Pair.of(texture.getTextureView(), SamplerCacheCache.NEAREST_CLAMP_MIPMAP);
             })
             .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
