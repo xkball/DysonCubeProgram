@@ -3,10 +3,7 @@ package com.xkball.dyson_cube_program;
 import com.xkball.dyson_cube_program.client.renderer.block_entity.DebugEntityBlockRenderer;
 import com.xkball.dyson_cube_program.common.DCPTempReg;
 import com.xkball.xorlib.api.annotation.ModMeta;
-import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.minecraft.SharedConstants;
-import net.minecraft.client.Minecraft;
-import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import org.slf4j.Logger;
 

@@ -2,13 +2,11 @@ package com.xkball.dyson_cube_program.mixin;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
 import com.xkball.dyson_cube_program.client.renderer.block_entity.DebugEntityBlockRenderer;
 import com.xkball.dyson_cube_program.common.DCPTempReg;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SkyRenderer;
-import net.minecraft.core.BlockPos;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
