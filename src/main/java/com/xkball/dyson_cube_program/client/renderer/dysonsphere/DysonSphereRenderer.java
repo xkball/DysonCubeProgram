@@ -110,7 +110,7 @@ public class DysonSphereRenderer {
         
         var poseStack = new PoseStack();
         this.renderDysonNodes(poseStack, nodes, orbit, setup);
-        this.renderDysonFrame(poseStack, nodes, layer, setup);
+        //this.renderDysonFrame(poseStack, nodes, layer, setup);
         this.renderDysonShell(poseStack, nodes, layer, setup, orbit == null ? new Quaternionf() : orbit.rotation());
     }
     
@@ -279,7 +279,7 @@ public class DysonSphereRenderer {
         if(orbit == null) return p -> {};
         return p -> {
             p.mulPose(orbit.rotation());
-            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/160000));
+            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/16));
         };
     }
     

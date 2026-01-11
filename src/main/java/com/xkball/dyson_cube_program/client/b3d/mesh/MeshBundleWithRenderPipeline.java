@@ -2,6 +2,7 @@ package com.xkball.dyson_cube_program.client.b3d.mesh;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
@@ -31,12 +32,12 @@ public class MeshBundleWithRenderPipeline extends MeshBundle<RenderPipeline> {
     
     @Override
     public @Nullable GpuTextureView getColorTarget() {
-        return Minecraft.getInstance().getMainRenderTarget().getColorTextureView();
+        return RenderSystem.outputColorTextureOverride != null ? RenderSystem.outputColorTextureOverride : Minecraft.getInstance().getMainRenderTarget().getColorTextureView();
     }
     
     @Override
     public @Nullable GpuTextureView getDepthTarget() {
-        return Minecraft.getInstance().getMainRenderTarget().getDepthTextureView();
+        return RenderSystem.outputDepthTextureOverride != null ? RenderSystem.outputDepthTextureOverride : Minecraft.getInstance().getMainRenderTarget().getDepthTextureView();
     }
     
     @Override

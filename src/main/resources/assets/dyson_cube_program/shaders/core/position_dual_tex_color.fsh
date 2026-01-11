@@ -26,6 +26,6 @@ void main() {
     vec2 uv = gl_FrontFacing ? texCoordFront : texCoordFront + Offset;
     vec4 color = gl_FrontFacing ? (texture(Sampler0, uv) * vertexColor) : texture(Sampler0, uv) * 0.9 + vertexColor * CCM * 0.1;
 //    float lod = textureQueryLod(Sampler0, uv).x;
-//    vec4 color = vec4(lod / 4.0, lod / 4.0, lod / 4.0, 1.0);
+//    vec4 color = vec4(lod / 10.0, lod / 10.0, lod / 10.0, 1.0);
     fragColor = color * ColorModulator;
 }

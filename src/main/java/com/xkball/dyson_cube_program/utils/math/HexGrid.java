@@ -196,8 +196,8 @@ public class HexGrid {
                     if(can != null && cbn != null) {
                         var dcan = calculateDelta(can,c,a);
                         var dcbn = calculateDelta(cbn,c,b);
-                        buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,cbn,color,u0,v0,u1,v1,lerp(dcan,u2,u0),lerp(dcan,v2,v0),front);
-                        buildTriangle(pose,bufferBuilder,a.contextPos,cbn,can,color,u0,v0,lerp(dcan,u2,u0),lerp(dcan,v2,u0),lerp(dcbn,u2,u1),lerp(dcbn,v2,v1),front);
+                        buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,cbn,color,u0,v0,u1,v1,lerp(dcan,u2,u1),lerp(dcan,v2,v1),front);
+                        buildTriangle(pose,bufferBuilder,a.contextPos,cbn,can,color,u0,v0,lerp(dcbn,u2,u1),lerp(dcbn,v2,v1),lerp(dcan,u2,u0),lerp(dcan,v2,v0),front);
                     }
                     else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
                 }
@@ -219,7 +219,7 @@ public class HexGrid {
                     if(an != null && cn != null) {
                         var dan = calculateDelta(an,b,a);
                         var dcn = calculateDelta(cn,b,c);
-                        buildTriangle(pose,bufferBuilder,b.contextPos,an,cn,color, lerp(dan,u1,u0), lerp(dan,v1,v0),u1,u1, lerp(dcn,u1,u2), lerp(dcn,v1,v2),front);
+                        buildTriangle(pose,bufferBuilder,an,b.contextPos,cn,color, lerp(dan,u1,u0), lerp(dan,v1,v0),u1,u1, lerp(dcn,u1,u2), lerp(dcn,v1,v2),front);
                     }
                     else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
                 }
@@ -229,7 +229,7 @@ public class HexGrid {
                     if(an != null && bn != null) {
                         var dan = calculateDelta(an,c,a);
                         var dbn = calculateDelta(bn,c,b);
-                        buildTriangle(pose,bufferBuilder,c.contextPos,an,bn,color, lerp(dan,u0,u2), lerp(dan,v0,v2), lerp(dbn,u0,u2), lerp(dbn,v0,v2),u2,v2,front);
+                        buildTriangle(pose,bufferBuilder,an,bn,c.contextPos,color, lerp(dan,u2,u0), lerp(dan,v2,v0), lerp(dbn,u2,u1), lerp(dbn,v2,v1),u2,v2,front);
                     }
                     else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
                 }

@@ -103,12 +103,10 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     }
     
     public void render(PoseStack poseStack) {
-        render(poseStack, null);
+        render(poseStack, null, this.getColorTarget(), this.getDepthTarget());
     }
     
-    public void render(PoseStack poseStack, @Nullable GLCommandList cmdList) {
-        var colorTarget = this.getColorTarget();
-        var depthTarget = this.getDepthTarget();
+    public void render(PoseStack poseStack, @Nullable GLCommandList cmdList, GpuTextureView colorTarget, GpuTextureView depthTarget) {
         if(colorTarget == null || depthTarget == null) return;
         if(this.meshes.isEmpty()) return;
         

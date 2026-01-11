@@ -1,6 +1,7 @@
 package com.xkball.dyson_cube_program.client.renderer;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -84,35 +85,36 @@ public class TheSunRenderer {
     }
     
     public static void drawSunAt(PoseStack poseStack, Vector3f center, int color){
-        DCPPostProcesses.BLOOM.bindAndClear(false);
+        var target = DCPPostProcesses.BLOOM.startPass();
         TheSunRenderer.contextColor = color;
         TheSunRenderer.setRenderingCenter(center);
         DCPUniforms.THE_SUN_UNIFORM.update();
-        TheSunRenderer.SUN_LAYER0.render(poseStack);
+        TheSunRenderer.SUN_LAYER0.render(poseStack, null, target.getColorTextureView(), target.getDepthTextureView());
     
         poseStack.pushPose();
         poseStack.scale(1.05f, 1.05f, 1.05f);
-        TheSunRenderer.SUN_LAYER1.render(poseStack);
+        TheSunRenderer.SUN_LAYER1.render(poseStack, null, target.getColorTextureView(), target.getDepthTextureView());
         poseStack.popPose();
         
-        poseStack.pushPose();
-        var dir = getRenderDirection().normalize();
-        var forward = new Vector3f(0, 0, 1);
-        var dot = forward.dot(dir);
-        //todo 存在突变
-        var flag = dot < -0.5f;
-        if(flag){
-            forward = new Vector3f(0, 0, -1);
-            dot = forward.dot(dir);
-        }
-        var angle = (float)Math.acos(dot);
-        var axis = forward.cross(dir, new Vector3f()).normalize();
-        poseStack.mulPose(new Quaternionf().rotationAxis(angle, axis));
-        if(flag) poseStack.mulPose(Axis.YP.rotationDegrees(180));
-        TheSunRenderer.RING_MESH.render(poseStack);
-        poseStack.popPose();
+//        poseStack.pushPose();
+//        var dir = getRenderDirection().normalize();
+//        var forward = new Vector3f(0, 0, 1);
+//        var dot = forward.dot(dir);
+//        //todo 存在突变
+//        var flag = dot < -0.5f;
+//        if(flag){
+//            forward = new Vector3f(0, 0, -1);
+//            dot = forward.dot(dir);
+//        }
+//        var angle = (float)Math.acos(dot);
+//        var axis = forward.cross(dir, new Vector3f()).normalize();
+//        poseStack.mulPose(new Quaternionf().rotationAxis(angle, axis));
+//        if(flag) poseStack.mulPose(Axis.YP.rotationDegrees(180));
+//        TheSunRenderer.RING_MESH.render(poseStack);
+//        poseStack.popPose();
 
-        DCPPostProcesses.BLOOM.applyAndUnbind(false);
+        DCPPostProcesses.BLOOM.endPass();
+        DCPPostProcesses.BLOOM.applyAndFlush();
     }
     
     public static int getContextColor() {

@@ -9,7 +9,6 @@ import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprint
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.model.AtlasManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -17,7 +16,6 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
-import net.neoforged.neoforge.client.event.RegisterTextureAtlasesEvent;
 import org.slf4j.Logger;
 
 import java.text.NumberFormat;

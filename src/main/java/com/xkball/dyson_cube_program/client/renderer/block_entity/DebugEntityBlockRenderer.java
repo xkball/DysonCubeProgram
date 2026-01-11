@@ -35,7 +35,7 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
         return AABB.INFINITE;
     }
     
-    public void render(DebugEntityState blockEntity, PoseStack poseStack) {
+    public void render(Vector3f pos, PoseStack poseStack) {
         DCPUniforms.CUSTOM_COLOR_MODULATOR.updateUnsafe(b -> b.putVec4(ColorUtils.Vectorization.argbColor(TheSunRenderer.SUN_COLOR)));
         poseStack.pushPose();
         var scale = 1/5000f;
@@ -43,11 +43,7 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
         poseStack.scale(scale, scale, scale);
         sphereRenderer.render(poseStack);
         poseStack.popPose();
-        TheSunRenderer.drawSunAt(poseStack,new Vector3f(blockEntity.blockPos.getX(), blockEntity.blockPos.getY(), blockEntity.blockPos.getZ()),TheSunRenderer.SUN_COLOR);
-        
-//        try(var renderPass = ClientUtils.createRenderPass("instance_test")){
-//            renderPass.setPipeline(DCPRenderPipelines.POSITION_COLOR_INSTANCED);
-//        }
+        TheSunRenderer.drawSunAt(poseStack,pos,TheSunRenderer.SUN_COLOR);
     }
     
     @Override
@@ -57,6 +53,6 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     
     @Override
     public void submit(DebugEntityState renderState, PoseStack poseStack, SubmitNodeCollector nodeCollector, CameraRenderState cameraRenderState) {
-        nodeCollector.submitCustomGeometry(poseStack, RenderTypes.debugQuads(),(p, v) -> render(renderState,ClientUtils.fromPose(p)));
+        nodeCollector.submitCustomGeometry(poseStack, RenderTypes.debugQuads(),(p, v) -> render(new Vector3f(renderState.blockPos.getX(), renderState.blockPos.getY(), renderState.blockPos.getZ()),ClientUtils.fromPose(p)));
     }
 }

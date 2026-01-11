@@ -2,21 +2,26 @@ package com.xkball.dyson_cube_program.client.postprocess;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.logging.LogUtils;
+import com.xkball.dyson_cube_program.DysonCubeProgram;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
 import net.minecraft.client.Minecraft;
+import org.slf4j.Logger;
 
 @NonNullByDefault
 public class BloomPostProcess extends AbstractPostProcess {
     
+    private static final Logger LOGGER = LogUtils.getLogger();
     private final int samplerDepth;
     private final RenderTarget swap;
     private final RenderTarget composite;
     private final RenderTarget[] downSamplersH;
     private final RenderTarget[] downSamplersV;
+    private RenderTarget background;
     
     public BloomPostProcess(int xSize, int ySize) {
         this(xSize,ySize,4);
@@ -56,6 +61,11 @@ public class BloomPostProcess extends AbstractPostProcess {
     
     @Override
     public void apply(RenderTarget input) {
+        if(this.background == null){
+            LOGGER.error("background render target not set.");
+            if(DysonCubeProgram.IS_DEBUG) throw new NullPointerException("background render target not set.");
+            return;
+        }
         var src = input;
         
         for(var i = 0; i < samplerDepth; i++) {
@@ -70,7 +80,7 @@ public class BloomPostProcess extends AbstractPostProcess {
         }
         
         this.processOnce(DCPRenderPipelines.BLOOM_COMPOSITE,composite,(pass) -> {
-            pass.bindTexture("DiffuseSampler",swap.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
+            pass.bindTexture("DiffuseSampler",background.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
             pass.bindTexture("HighLight",input.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
             for(var i = 0; i < samplerDepth; i++) {
                 pass.bindTexture("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
@@ -89,21 +99,38 @@ public class BloomPostProcess extends AbstractPostProcess {
                 .putVec2((float) xSize/factor, (float) ySize/factor));
     }
     
-    public void bindAndClear(boolean copyDepth) {
+//    public void bindAndClear(boolean copyDepth) {
+//        var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
+//        ClientUtils.copyFrameBufferColorTo(mainBuffer,this.swap);
+//        if(copyDepth) {
+//            ClientUtils.copyFrameBufferDepthTo(mainBuffer,this.swap);
+//        }
+//        ClientUtils.clear(mainBuffer,false);
+//    }
+//
+//    public void applyAndUnbind(boolean copyDepth) {
+//        var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
+//        this.apply(mainBuffer);
+//        if(copyDepth) {
+//            ClientUtils.copyFrameBufferDepthTo(this.swap, mainBuffer);
+//        }
+//    }
+    
+    public RenderTarget startPass(){
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
-        ClientUtils.copyFrameBufferColorTo(mainBuffer,this.swap);
-        if(copyDepth) {
-            ClientUtils.copyFrameBufferDepthTo(mainBuffer,this.swap);
-        }
-        ClientUtils.clear(mainBuffer,false);
+        ClientUtils.copyFrameBufferDepthTo(mainBuffer,this.swap);
+        this.background = mainBuffer;
+        return swap;
     }
     
-    public void applyAndUnbind(boolean copyDepth) {
+    public void endPass(){
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
-        this.apply(mainBuffer);
-        if(copyDepth) {
-            ClientUtils.copyFrameBufferDepthTo(this.swap, mainBuffer);
-        }
+        ClientUtils.copyFrameBufferDepthTo(this.swap, mainBuffer);
     }
     
+    public void applyAndFlush(){
+        this.apply(swap);
+        ClientUtils.clear(swap,true);
+        this.background = null;
+    }
 }
