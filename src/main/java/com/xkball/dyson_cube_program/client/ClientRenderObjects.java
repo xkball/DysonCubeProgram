@@ -4,6 +4,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.xkball.dyson_cube_program.api.client.IEndFrameListener;
 import com.xkball.dyson_cube_program.api.client.IUpdatable;
 import com.xkball.dyson_cube_program.client.b3d.extension.StateObjectCache;
+import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.neoforged.neoforge.client.event.ClientResourceLoadFinishedEvent;
 import net.neoforged.neoforge.client.event.lifecycle.ClientStoppedEvent;
@@ -71,6 +73,11 @@ public class ClientRenderObjects {
     
     @SubscribeEventEnhanced
     public static void afterReloadFinish(ClientResourceLoadFinishedEvent event){
+        //预先加载, 避免在renderPass里面加载导致爆炸
+        ClientUtils.getTexture(VanillaUtils.modRL("textures/dyson_shell/dyson-shell-e14.png"));
+        ClientUtils.getTexture(VanillaUtils.modRL("textures/dyson_shell/dyson-shell-a.png"));
+        ClientUtils.getTexture(VanillaUtils.modRL("textures/dyson_shell/dyson-shell-l.png"));
+        ClientUtils.getTexture(VanillaUtils.modRL("textures/blue_noise.png"));
         for(var updatable : INSTANCE.reload) {
             updatable.update();
         }

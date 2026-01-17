@@ -138,9 +138,9 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
             return this;
         }
         
-        public UBOBuilder putVec2(String name, IntSupplier xSupplier, IntSupplier ySupplier) {
+        public UBOBuilder putVec2(String name, FloatSupplier xSupplier, FloatSupplier ySupplier) {
             calculator.putVec2();
-            builders.add(b -> b.putVec2(xSupplier.getAsInt(), ySupplier.getAsInt()));
+            builders.add(b -> b.putVec2(xSupplier.getAsFloat(), ySupplier.getAsFloat()));
             return this;
         }
         

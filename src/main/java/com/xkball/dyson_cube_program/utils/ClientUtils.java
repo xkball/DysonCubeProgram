@@ -25,6 +25,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.data.AtlasIds;
@@ -131,6 +132,14 @@ public class ClientUtils {
         var result = NVShaderBufferLoad.glGetNamedBufferParameterui64NV(buffer, NVShaderBufferLoad.GL_BUFFER_GPU_ADDRESS_NV);
         NVShaderBufferLoad.glMakeNamedBufferResidentNV(buffer, GlConst.GL_READ_ONLY);
         return result;
+    }
+    
+    public static AbstractTexture getTexture(String texture){
+        return Minecraft.getInstance().getTextureManager().getTexture(VanillaUtils.modRL(texture));
+    }
+    
+    public static AbstractTexture getTexture(Identifier texture){
+        return Minecraft.getInstance().getTextureManager().getTexture(texture);
     }
     
     public static TextureAtlasSprite getTextureFromAtlas(Identifier atlas, String id){

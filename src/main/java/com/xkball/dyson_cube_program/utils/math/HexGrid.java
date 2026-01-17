@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.graph.NodeProvider;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -137,36 +136,36 @@ public class HexGrid {
             return result;
         }
         
-        public void makeQuads(PoseStack.Pose pose, BufferBuilder bufferBuilder, int color, TextureAtlasSprite front, List<Quad> quads, List<Pair<Vector3f,Vector3f>> sides, boolean fullCheck){
+        public void makeQuads(PoseStack.Pose pose, BufferBuilder bufferBuilder, int color, List<Quad> quads, List<Pair<Vector3f,Vector3f>> sides, boolean fullCheck){
             if(type != NodeType.CENTER) return;
             if(!fullCheck){
-                if(n000 != null && n060 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n000.contextPos,n060.contextPos,color,1f/3f,1f/3f,2f/3f,1f/3f,2f/3f,0,front);
-                if(n060 != null && n120 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n060.contextPos,n120.contextPos,color,1f/3f,1f/3f,2f/3f,0,1f/3f,0,front);
-                if(n120 != null && n180 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n120.contextPos,n180.contextPos,color,1f/3f,1f/3f,1f/3f,0,0,1f/3f,front);
-                if(n180 != null && n240 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n180.contextPos,n240.contextPos,color,1f/3f,1f/3f,0,1f/3f,0,2f/3f,front);
-                if(n240 != null && n300 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n240.contextPos,n300.contextPos,color,1f/3f,1f/3f,0,2f/3f,1f/3f,2f/3f,front);
-                if(n300 != null && n000 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n300.contextPos,n000.contextPos,color,1f/3f,1f/3f,1f/3f,2f/3f,2f/3f,1f/3f,front);
+                if(n000 != null && n060 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n000.contextPos,n060.contextPos,color, 0.5f, 0.5f, 1.0f, 0.5f, 1.0f, 0.0f);
+                if(n060 != null && n120 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n060.contextPos,n120.contextPos,color, 0.5f, 0.5f, 1.0f, 0.0f, 0.5f, 0.0f);
+                if(n120 != null && n180 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n120.contextPos,n180.contextPos,color, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.5f);
+                if(n180 != null && n240 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n180.contextPos,n240.contextPos,color, 0.5f, 0.5f, 0.0f, 0.5f, 0.0f, 1.0f);
+                if(n240 != null && n300 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n240.contextPos,n300.contextPos,color, 0.5f, 0.5f, 0.0f, 1.0f, 0.5f, 1.0f);
+                if(n300 != null && n000 != null) this.buildTriangle(pose,bufferBuilder,this.contextPos,n300.contextPos,n000.contextPos,color, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.5f);
             }
             else{
                 for(var n : neighbors()){
                     n.contextState = SphereGeometryUtils.insideQuads(n.contextPos, quads);
                 }
-                if(n000 != null && n060 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n000,n060,color,1f/3f,1f/3f,2f/3f,1f/3f,2f/3f,0,front);
-                if(n060 != null && n120 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n060,n120,color,1f/3f,1f/3f,2f/3f,0,1f/3f,0,front);
-                if(n120 != null && n180 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n120,n180,color,1f/3f,1f/3f,1f/3f,0,0,1f/3f,front);
-                if(n180 != null && n240 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n180,n240,color,1f/3f,1f/3f,0,1f/3f,0,2f/3f,front);
-                if(n240 != null && n300 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n240,n300,color,1f/3f,1f/3f,0,2f/3f,1f/3f,2f/3f,front);
-                if(n300 != null && n000 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n300,n000,color,1f/3f,1f/3f,1f/3f,2f/3f,2f/3f,1f/3f,front);
+                if(n000 != null && n060 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n000,n060,color,0.5f, 0.5f, 1.0f, 0.5f, 1.0f, 0.0f);
+                if(n060 != null && n120 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n060,n120,color,0.5f, 0.5f, 1.0f, 0.0f, 0.5f, 0.0f);
+                if(n120 != null && n180 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n120,n180,color,0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 0.5f);
+                if(n180 != null && n240 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n180,n240,color,0.5f, 0.5f, 0.0f, 0.5f, 0.0f, 1.0f);
+                if(n240 != null && n300 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n240,n300,color,0.5f, 0.5f, 0.0f, 1.0f, 0.5f, 1.0f);
+                if(n300 != null && n000 != null) makeEdgeQuads(pose,bufferBuilder,sides,this,n300,n000,color,0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.5f);
             }
         }
         
         public void makeEdgeQuads(PoseStack.Pose pose, BufferBuilder bufferBuilder, List<Pair<Vector3f,Vector3f>> sides, Node a, Node b, Node c,
-                                  int color, float u0, float v0, float u1, float v1, float u2, float v2, TextureAtlasSprite front){
+                                  int color, float u0, float v0, float u1, float v1, float u2, float v2){
             var outsideCount = 0;
             if(!a.contextState) outsideCount++;
             if(!b.contextState) outsideCount++;
             if(!c.contextState) outsideCount++;
-            if(outsideCount == 0) buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
+            if(outsideCount == 0) buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
             if(outsideCount == 1){
                 if(!a.contextState){
                     var abn = findIntersection(sides,a,b);
@@ -174,10 +173,10 @@ public class HexGrid {
                     if(abn != null && acn != null) {
                         var dabn = calculateDelta(abn,a,b);
                         var dacn = calculateDelta(acn,a,c);
-                        buildTriangle(pose,bufferBuilder,abn,b.contextPos,c.contextPos,color, lerp(dabn,u0,u1), lerp(dabn,v0,v1),u1,v1,u2,v2,front);
-                        buildTriangle(pose,bufferBuilder,abn,c.contextPos,acn,color, lerp(dabn,u0,u1), lerp(dabn,v0,v1),u2,v2, lerp(dacn,u0,u2), lerp(dacn,v0,v2),front);
+                        buildTriangle(pose,bufferBuilder,abn,b.contextPos,c.contextPos,color, lerp(dabn,u0,u1), lerp(dabn,v0,v1),u1,v1,u2,v2);
+                        buildTriangle(pose,bufferBuilder,abn,c.contextPos,acn,color, lerp(dabn,u0,u1), lerp(dabn,v0,v1),u2,v2, lerp(dacn,u0,u2), lerp(dacn,v0,v2));
                     }
-                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
+                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
                 }
                 else if(!b.contextState){
                     var bcn = findIntersection(sides,b,c);
@@ -185,10 +184,10 @@ public class HexGrid {
                     if(bcn != null && ban != null) {
                         var dban = calculateDelta(ban,b,a);
                         var dbcn = calculateDelta(bcn,b,c);
-                        buildTriangle(pose,bufferBuilder,a.contextPos,ban,c.contextPos,color,u0,v0, lerp(dban,u1,u0), lerp(dban,v1,v0),u2,v2,front);
-                        buildTriangle(pose,bufferBuilder,ban,bcn,c.contextPos,color, lerp(dban,u1,u0), lerp(dban,v1,v0), lerp(dbcn,u1,u2), lerp(dbcn,v1,v2),u2,v2,front);
+                        buildTriangle(pose,bufferBuilder,a.contextPos,ban,c.contextPos,color,u0,v0, lerp(dban,u1,u0), lerp(dban,v1,v0),u2,v2);
+                        buildTriangle(pose,bufferBuilder,ban,bcn,c.contextPos,color, lerp(dban,u1,u0), lerp(dban,v1,v0), lerp(dbcn,u1,u2), lerp(dbcn,v1,v2),u2,v2);
                     }
-                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
+                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
                 }
                 else {
                     var can = findIntersection(sides,c,a);
@@ -196,10 +195,10 @@ public class HexGrid {
                     if(can != null && cbn != null) {
                         var dcan = calculateDelta(can,c,a);
                         var dcbn = calculateDelta(cbn,c,b);
-                        buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,cbn,color,u0,v0,u1,v1,lerp(dcan,u2,u1),lerp(dcan,v2,v1),front);
-                        buildTriangle(pose,bufferBuilder,a.contextPos,cbn,can,color,u0,v0,lerp(dcbn,u2,u1),lerp(dcbn,v2,v1),lerp(dcan,u2,u0),lerp(dcan,v2,v0),front);
+                        buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,cbn,color,u0,v0,u1,v1,lerp(dcan,u2,u1),lerp(dcan,v2,v1));
+                        buildTriangle(pose,bufferBuilder,a.contextPos,cbn,can,color,u0,v0,lerp(dcbn,u2,u1),lerp(dcbn,v2,v1),lerp(dcan,u2,u0),lerp(dcan,v2,v0));
                     }
-                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
+                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
                 }
             }
             if(outsideCount == 2){
@@ -209,9 +208,9 @@ public class HexGrid {
                     if(bn != null && cn != null){
                         var dbn = calculateDelta(bn,a,b);
                         var dcn = calculateDelta(cn,a,c);
-                        buildTriangle(pose,bufferBuilder,a.contextPos,bn,cn,color,u0,v0, lerp(dbn,u0,u1), lerp(dbn,v0,v1), lerp(dcn,u0,u2), lerp(dcn,v0,v2),front);
+                        buildTriangle(pose,bufferBuilder,a.contextPos,bn,cn,color,u0,v0, lerp(dbn,u0,u1), lerp(dbn,v0,v1), lerp(dcn,u0,u2), lerp(dcn,v0,v2));
                     }
-                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
+                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
                 }
                 else if(b.contextState){
                     var an = findIntersection(sides,b,a);
@@ -219,9 +218,9 @@ public class HexGrid {
                     if(an != null && cn != null) {
                         var dan = calculateDelta(an,b,a);
                         var dcn = calculateDelta(cn,b,c);
-                        buildTriangle(pose,bufferBuilder,an,b.contextPos,cn,color, lerp(dan,u1,u0), lerp(dan,v1,v0),u1,u1, lerp(dcn,u1,u2), lerp(dcn,v1,v2),front);
+                        buildTriangle(pose,bufferBuilder,an,b.contextPos,cn,color, lerp(dan,u1,u0), lerp(dan,v1,v0),u1,u1, lerp(dcn,u1,u2), lerp(dcn,v1,v2));
                     }
-                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
+                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
                 }
                 else {
                     var an = findIntersection(sides,c,a);
@@ -229,18 +228,18 @@ public class HexGrid {
                     if(an != null && bn != null) {
                         var dan = calculateDelta(an,c,a);
                         var dbn = calculateDelta(bn,c,b);
-                        buildTriangle(pose,bufferBuilder,an,bn,c.contextPos,color, lerp(dan,u2,u0), lerp(dan,v2,v0), lerp(dbn,u2,u1), lerp(dbn,v2,v1),u2,v2,front);
+                        buildTriangle(pose,bufferBuilder,an,bn,c.contextPos,color, lerp(dan,u2,u0), lerp(dan,v2,v0), lerp(dbn,u2,u1), lerp(dbn,v2,v1),u2,v2);
                     }
-                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2,front);
+                    else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
                 }
             }
         }
         
         private void buildTriangle(PoseStack.Pose pose, BufferBuilder bufferBuilder, Vector3f a, Vector3f b, Vector3f c,
-                                   int color, float u0, float v0, float u1, float v1, float u2, float v2, TextureAtlasSprite front){
-            bufferBuilder.addVertex(pose,a).setUv(front.getU(u0),front.getV(v0)).setColor(color);
-            bufferBuilder.addVertex(pose,b).setUv(front.getU(u1),front.getV(v1)).setColor(color);
-            bufferBuilder.addVertex(pose,c).setUv(front.getU(u2),front.getV(v2)).setColor(color);
+                                   int color, float u0, float v0, float u1, float v1, float u2, float v2){
+            bufferBuilder.addVertex(pose,a).setUv(u0,v0).setColor(color);
+            bufferBuilder.addVertex(pose,b).setUv(u1,v1).setColor(color);
+            bufferBuilder.addVertex(pose,c).setUv(u2,v2).setColor(color);
         }
         
         private @Nullable Vector3f findIntersection(List<Pair<Vector3f,Vector3f>> sides, Node l1a, Node l1b){
@@ -258,12 +257,12 @@ public class HexGrid {
         public void transform(Matrix4f mat){
             if(type != NodeType.CENTER) return;
             mat.transformPosition(this.spherePos,this.contextPos);
-            if(n000 != null) {mat.transformPosition(n000.spherePos,n000.contextPos); this.contextPos.add(n000.contextPos.sub(this.contextPos,n000.contextPos).mul(0.98f),n000.contextPos);}
-            if(n060 != null) {mat.transformPosition(n060.spherePos,n060.contextPos); this.contextPos.add(n060.contextPos.sub(this.contextPos,n060.contextPos).mul(0.98f),n060.contextPos);}
-            if(n120 != null) {mat.transformPosition(n120.spherePos,n120.contextPos); this.contextPos.add(n120.contextPos.sub(this.contextPos,n120.contextPos).mul(0.98f),n120.contextPos);}
-            if(n180 != null) {mat.transformPosition(n180.spherePos,n180.contextPos); this.contextPos.add(n180.contextPos.sub(this.contextPos,n180.contextPos).mul(0.98f),n180.contextPos);}
-            if(n240 != null) {mat.transformPosition(n240.spherePos,n240.contextPos); this.contextPos.add(n240.contextPos.sub(this.contextPos,n240.contextPos).mul(0.98f),n240.contextPos);}
-            if(n300 != null) {mat.transformPosition(n300.spherePos,n300.contextPos); this.contextPos.add(n300.contextPos.sub(this.contextPos,n300.contextPos).mul(0.98f),n300.contextPos);}
+            if(n000 != null) {mat.transformPosition(n000.spherePos,n000.contextPos);}
+            if(n060 != null) {mat.transformPosition(n060.spherePos,n060.contextPos);}
+            if(n120 != null) {mat.transformPosition(n120.spherePos,n120.contextPos);}
+            if(n180 != null) {mat.transformPosition(n180.spherePos,n180.contextPos);}
+            if(n240 != null) {mat.transformPosition(n240.spherePos,n240.contextPos);}
+            if(n300 != null) {mat.transformPosition(n300.spherePos,n300.contextPos);}
         }
         
         public List<Node> neighbors(NodeType type){

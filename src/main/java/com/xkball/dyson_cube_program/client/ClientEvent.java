@@ -2,6 +2,7 @@ package com.xkball.dyson_cube_program.client;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.logging.LogUtils;
+import com.xkball.dyson_cube_program.DysonCubeProgram;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.renderer.block_entity.DebugEntityBlockRenderer;
 import com.xkball.dyson_cube_program.common.DCPTempReg;
@@ -33,7 +34,7 @@ public class ClientEvent {
     
     @SubscribeEventEnhanced
     public static void onRegGuiLayerDef(RegisterGuiLayersEvent event){
-        if(VanillaUtils.DEBUG){
+        if(DysonCubeProgram.IS_DEBUG){
             event.registerAboveAll(VanillaUtils.modRL("debug"),(guiGraphics, partialTicks) -> {
                 var font = Minecraft.getInstance().font;
                 var numFormat = NumberFormat.getInstance();

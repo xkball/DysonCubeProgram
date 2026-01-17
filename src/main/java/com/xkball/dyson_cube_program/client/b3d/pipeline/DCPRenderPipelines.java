@@ -8,9 +8,9 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
-import com.xkball.dyson_cube_program.client.DCPTextureAtlas;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.client.b3d.vertex.DCPVertexFormats;
+import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -49,15 +49,44 @@ public class DCPRenderPipelines {
             .withLocation(VanillaUtils.modRL("position_dual_tex_color"))
             .withVertexShader(VanillaUtils.modRL("core/position_dual_tex_color"))
             .withFragmentShader(VanillaUtils.modRL("core/position_dual_tex_color"))
-            .withSampler("Sampler0")
-            .bindSampler("Sampler0",() -> {
-                var texture = Minecraft.getInstance().getTextureManager().getTexture(DCPTextureAtlas.DYSON_SHELL_ATLAS_LOCATION);
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withSampler("TexFront")
+            .bindSampler("TexFront",() -> {
+                var texture = ClientUtils.getTexture(VanillaUtils.modRL("textures/dyson_shell/dyson-shell-e14.png"));
+                return Pair.of(texture.getTextureView(), SamplerCacheCache.NEAREST_CLAMP_MIPMAP);
+            })
+            .withSampler("TexBack")
+            .bindSampler("TexBack",() -> {
+                var texture = ClientUtils.getTexture(VanillaUtils.modRL("textures/dyson_shell/dyson-shell-a.png"));
+                return Pair.of(texture.getTextureView(), SamplerCacheCache.NEAREST_CLAMP_MIPMAP);
+            })
+            .withSampler("TexNoise")
+            .bindSampler("TexNoise",() -> {
+                var texture = ClientUtils.getTexture(VanillaUtils.modRL("textures/blue_noise.png"));
+                return Pair.of(texture.getTextureView(), SamplerCacheCache.NEAREST_REPEAT);
+            })
+            .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+            .withUniform("CustomColorModulator", UniformType.UNIFORM_BUFFER)
+            .bindUniform("CustomColorModulator", DCPUniforms.CUSTOM_COLOR_MODULATOR)
+            .withUniform("ScreenSize", UniformType.UNIFORM_BUFFER)
+            .bindUniform("ScreenSize", DCPUniforms.SCREEN_SIZE)
+            .withCull(false)
+            .buildExtended();
+    
+    public static final ExtendedRenderPipeline DYSON_SHELL_FLASH = ExtendedRenderPipeline.extendedbuilder()
+            .withVertexFormat(DCPVertexFormats.POSITION_DUAL_TEX_COLOR, VertexFormat.Mode.TRIANGLES)
+            .withLocation(VanillaUtils.modRL("dyson_shell_flash"))
+            .withVertexShader(VanillaUtils.modRL("core/position_dual_tex_color"))
+            .withFragmentShader(VanillaUtils.modRL("core/dyson_shell_flash"))
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withSampler("TexBack")
+            .bindSampler("TexBack",() -> {
+                var texture = ClientUtils.getTexture(VanillaUtils.modRL("textures/dyson_shell/dyson-shell-l.png"));
                 return Pair.of(texture.getTextureView(), SamplerCacheCache.NEAREST_CLAMP_MIPMAP);
             })
             .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
-            .withUniform("DualTexOffset", UniformType.UNIFORM_BUFFER)
-            .bindUniform("DualTexOffset", DCPUniforms.DUAL_TEX_OFFSET_UNIFORM)
             .withUniform("CustomColorModulator", UniformType.UNIFORM_BUFFER)
             .bindUniform("CustomColorModulator", DCPUniforms.CUSTOM_COLOR_MODULATOR)
             .withCull(false)

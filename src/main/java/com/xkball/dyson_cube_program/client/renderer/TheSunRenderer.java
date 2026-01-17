@@ -1,17 +1,14 @@
 package com.xkball.dyson_cube_program.client.renderer;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public class TheSunRenderer {
@@ -85,7 +82,7 @@ public class TheSunRenderer {
     }
     
     public static void drawSunAt(PoseStack poseStack, Vector3f center, int color){
-        var target = DCPPostProcesses.BLOOM.startPass();
+        var target = DCPPostProcesses.BLOOM.startPass(Minecraft.getInstance().getMainRenderTarget(), true);
         TheSunRenderer.contextColor = color;
         TheSunRenderer.setRenderingCenter(center);
         DCPUniforms.THE_SUN_UNIFORM.update();
@@ -113,8 +110,7 @@ public class TheSunRenderer {
 //        TheSunRenderer.RING_MESH.render(poseStack);
 //        poseStack.popPose();
 
-        DCPPostProcesses.BLOOM.endPass();
-        DCPPostProcesses.BLOOM.applyAndFlush();
+        DCPPostProcesses.BLOOM.endPass(true);
     }
     
     public static int getContextColor() {

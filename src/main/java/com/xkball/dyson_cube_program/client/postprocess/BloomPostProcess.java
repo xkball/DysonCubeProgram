@@ -9,7 +9,9 @@ import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.minecraft.client.Minecraft;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.slf4j.Logger;
 
 @NonNullByDefault
@@ -22,6 +24,8 @@ public class BloomPostProcess extends AbstractPostProcess {
     private final RenderTarget[] downSamplersH;
     private final RenderTarget[] downSamplersV;
     private RenderTarget background;
+    private int used = 0;
+    private boolean inPass = false;
     
     public BloomPostProcess(int xSize, int ySize) {
         this(xSize,ySize,4);
@@ -83,7 +87,7 @@ public class BloomPostProcess extends AbstractPostProcess {
             pass.bindTexture("DiffuseSampler",background.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
             pass.bindTexture("HighLight",input.getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
             for(var i = 0; i < samplerDepth; i++) {
-                pass.bindTexture("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView(), SamplerCacheCache.NEAREST_CLAMP);
+                pass.bindTexture("BlurTexture" + (i+1),downSamplersV[i].getColorTextureView(), SamplerCacheCache.LINEAR_CLAMP);
             }
         });
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
@@ -116,21 +120,36 @@ public class BloomPostProcess extends AbstractPostProcess {
 //        }
 //    }
     
-    public RenderTarget startPass(){
-        var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
-        ClientUtils.copyFrameBufferDepthTo(mainBuffer,this.swap);
-        this.background = mainBuffer;
+    public RenderTarget startPass(RenderTarget scr, boolean copyDepth){
+        if(this.inPass){
+            throw new IllegalStateException("Already in a bloom pass.");
+        }
+        if(copyDepth){
+            ClientUtils.copyFrameBufferDepthTo(scr,this.swap);
+        }
+        this.background = scr;
+        this.inPass = true;
         return swap;
     }
     
-    public void endPass(){
-        var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
-        ClientUtils.copyFrameBufferDepthTo(this.swap, mainBuffer);
+    public void endPass(boolean copyDepth){
+        this.used+=1;
+        this.inPass = false;
+        if(copyDepth){
+            ClientUtils.copyFrameBufferDepthTo(this.swap, this.background);
+        }
     }
     
     public void applyAndFlush(){
+        if(this.used == 0) return;
         this.apply(swap);
         ClientUtils.clear(swap,true);
         this.background = null;
+        this.used = 0;
+    }
+    
+    @SubscribeEventEnhanced
+    public static void onLevelRender(RenderLevelStageEvent.AfterLevel event){
+        DCPPostProcesses.BLOOM.applyAndFlush();
     }
 }

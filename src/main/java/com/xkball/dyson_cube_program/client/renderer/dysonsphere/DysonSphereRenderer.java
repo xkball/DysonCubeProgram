@@ -9,12 +9,13 @@ import com.xkball.dyson_cube_program.api.IDGetter;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.ISTD140Writer;
 import com.xkball.dyson_cube_program.client.DCPStandaloneModels;
-import com.xkball.dyson_cube_program.client.DCPTextureAtlas;
+import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundleWrapped;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.b3d.mesh.InstanceInfo;
 import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundleWithRenderPipeline;
 import com.xkball.dyson_cube_program.client.b3d.uniform.TransMatColor;
+import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonNodeData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
@@ -41,7 +42,7 @@ import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,8 +53,9 @@ public class DysonSphereRenderer {
     
     private static final Logger LOGGER = LogUtils.getLogger();
     public DysonSpareBlueprintData data;
-    private final Map<RenderPipeline, MeshBundle<RenderPipeline>> meshes = new HashMap<>();
-    private static final int defaultColor = ColorUtils.getColor(73,140,163,255);
+    private final Map<RenderPipeline, MeshBundle<RenderPipeline>> meshes = new LinkedHashMap<>();
+    private MeshBundle<RenderPipeline> bloom;
+    private static final int defaultColor = ColorUtils.getColor(99,215,255,255);
     public DysonSphereRenderer(DysonSpareBlueprintData data) {
         this.data = data;
     }
@@ -66,8 +68,22 @@ public class DysonSphereRenderer {
         meshes.clear();
         meshes.put(DCPRenderPipelines.POSITION_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_color_instanced", DCPRenderPipelines.POSITION_COLOR_INSTANCED));
         meshes.put(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_tex_color_instanced", DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED));
-        meshes.put(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR, new MeshBundleWithRenderPipeline("dyson_sphere_debug_quad",DCPRenderPipelines.POSITION_DUAL_TEX_COLOR));
-        meshes.put(DCPRenderPipelines.DEBUG_LINE, new MeshBundleWithRenderPipeline("dyson_sphere_debug_lines",DCPRenderPipelines.DEBUG_LINE));
+        var shell = new MeshBundleWithRenderPipeline("dyson_shell",DCPRenderPipelines.POSITION_DUAL_TEX_COLOR);
+        meshes.put(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR,shell);
+        this.bloom = new MeshBundleWrapped<>("dyson_shell_flash",DCPRenderPipelines.DYSON_SHELL_FLASH,shell){
+            @Override
+            public void beforeSetupRenderPass() {
+                var target = DCPPostProcesses.BLOOM.startPass(Minecraft.getInstance().getMainRenderTarget(), true);
+                this.setOverrideTarget(target);
+                super.beforeSetupRenderPass();
+            }
+            
+            @Override
+            public void afterEndRenderPass() {
+                super.afterEndRenderPass();
+                DCPPostProcesses.BLOOM.endPass(false);
+            }
+        };
         var elements = data.type().elementTypes;
         if(elements.contains(DysonElementType.LAYER)){
             assert data.singleLayer() != null;
@@ -104,13 +120,17 @@ public class DysonSphereRenderer {
         poseStack.popPose();
     }
     
+    public void renderBloom(PoseStack poseStack){
+        this.bloom.render(poseStack);
+    }
+    
     private void renderSingleLayer(@Nullable DysonOrbitData orbit, DysonSphereLayerData layer){
         var nodes = IDGetter.toMap(layer.nodePool());
         var setup = rotateOrbit(orbit);
         
         var poseStack = new PoseStack();
         this.renderDysonNodes(poseStack, nodes, orbit, setup);
-        //this.renderDysonFrame(poseStack, nodes, layer, setup);
+        this.renderDysonFrame(poseStack, nodes, layer, setup);
         this.renderDysonShell(poseStack, nodes, layer, setup, orbit == null ? new Quaternionf() : orbit.rotation());
     }
     
@@ -216,7 +236,6 @@ public class DysonSphereRenderer {
     
     private void renderDysonShell(PoseStack poseStack, IntObjectMap<DysonNodeData> nodes, DysonSphereLayerData layer, Consumer<PoseStack> setup, Quaternionf orbit){
         var shellBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR);
-        var textureFront = ClientUtils.getTextureFromAtlas(DCPTextureAtlas.DYSON_SHELL_ATLAS, "dyson_shell/dyson-shell-e14");
         var shells = layer.shellPool().stream().filter(Objects::nonNull).toList();
         for(var shell : shells){
             assert shell.nodes().size() >= 3;
@@ -238,7 +257,7 @@ public class DysonSphereRenderer {
             var sides = shell.getSides(nodes).stream().map(p -> Pair.of(p.getFirst().normalize(new Vector3f()),p.getSecond().normalize(new Vector3f()))).toList();
             for(var node : filteredNodes){
                 node.transform(mat);
-                node.makeQuads(poseStack.last(),shellBuilder, color, textureFront, quads, sides, !node.contextInsideQuad());
+                node.makeQuads(poseStack.last(),shellBuilder, color, quads, sides, !node.contextInsideQuad());
             }
             poseStack.popPose();
         }
@@ -279,7 +298,7 @@ public class DysonSphereRenderer {
         if(orbit == null) return p -> {};
         return p -> {
             p.mulPose(orbit.rotation());
-            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/16));
+            p.mulPose(Axis.YP.rotationDegrees(ClientUtils.clientTickWithPartialTick()/160000));
         };
     }
     

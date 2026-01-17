@@ -22,7 +22,7 @@ public class MeshBundleWithRenderPipeline extends MeshBundle<RenderPipeline> {
     
     @Override
     public void setupRenderPass(RenderPass renderPass) {
-        renderPass.setPipeline(renderSettings);
+        renderPass.setPipeline(this.getRenderSettings());
     }
     
     @Override
@@ -42,11 +42,11 @@ public class MeshBundleWithRenderPipeline extends MeshBundle<RenderPipeline> {
     
     @Override
     public VertexFormat.Mode getVertexFormatMode() {
-        return renderSettings.getVertexFormatMode();
+        return this.getRenderSettings().getVertexFormatMode();
     }
     
     @Override
     public VertexFormat getVertexFormat() {
-        return renderSettings.getVertexFormat();
+        return this.getRenderSettings().getVertexFormat();
     }
 }

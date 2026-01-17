@@ -3,7 +3,6 @@ package com.xkball.dyson_cube_program.utils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.xkball.dyson_cube_program.DysonCubeProgram;
-import net.minecraft.SharedConstants;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,7 +37,6 @@ import java.util.zip.GZIPOutputStream;
 
 public class VanillaUtils {
     
-    public static final boolean DEBUG = SharedConstants.IS_RUNNING_WITH_JDWP;
     public static final Direction[] DIRECTIONS = Direction.values();
     public static final Identifier MISSING_TEXTURE = Identifier.withDefaultNamespace("missingno");
     public static final int TRANSPARENT = ColorUtils.getColor(255, 255, 255, 0);

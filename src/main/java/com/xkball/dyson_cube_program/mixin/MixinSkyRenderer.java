@@ -49,5 +49,6 @@ public class MixinSkyRenderer {
         }
         poseStack.popPose();
         ClientUtils.getCommandEncoder().clearDepthTexture(Minecraft.getInstance().getMainRenderTarget().getDepthTextureView().texture(),1.0);
+        
     }
 }

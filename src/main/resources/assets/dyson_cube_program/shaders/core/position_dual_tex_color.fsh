@@ -7,15 +7,19 @@ layout(std140) uniform DynamicTransforms {
     mat4 TextureMat;
 };
 
-layout(std140) uniform DualTexOffset{
-    vec2 Offset;
-};
-
 layout(std140) uniform CustomColorModulator{
     vec4 CCM;
 };
 
-uniform sampler2D Sampler0;
+layout(std140) uniform ScreenSize{
+    vec2 size;
+};
+
+const vec2 UVCenter = vec2(0.5,0.5);
+
+uniform sampler2D TexFront;
+uniform sampler2D TexBack;
+uniform sampler2D TexNoise;
 
 in vec2 texCoordFront;
 in vec4 vertexColor;
@@ -23,9 +27,17 @@ in vec4 vertexColor;
 out vec4 fragColor;
 
 void main() {
-    vec2 uv = gl_FrontFacing ? texCoordFront : texCoordFront + Offset;
-    vec4 color = gl_FrontFacing ? (texture(Sampler0, uv) * vertexColor) : texture(Sampler0, uv) * 0.9 + vertexColor * CCM * 0.1;
-//    float lod = textureQueryLod(Sampler0, uv).x;
-//    vec4 color = vec4(lod / 10.0, lod / 10.0, lod / 10.0, 1.0);
+    float lod = textureQueryLod(TexFront, texCoordFront).x;
+    float scale = max(115 - lod*2, 100);
+    vec2 uv = (texCoordFront-UVCenter) * scale/100.0 + UVCenter;
+    vec2 screenUV = gl_FragCoord.xy / size;
+    if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || uv.x + uv.y < 0.5 || uv.x + uv.y > 1.5) discard;
+    float a = 1.0;
+    if(lod > 5.0 && (uv.x < 0.05 || uv.x > 0.95 || uv.y < 0.05 || uv.y > 0.95 || uv.x + uv.y < 0.55 || uv.x + uv.y > 1.45)){
+        float noise = texture(TexNoise, screenUV).r;
+        a = (a + noise) / 2.5;
+    }
+    vec4 color = gl_FrontFacing ? (texture(TexFront, uv) * vertexColor) : texture(TexBack, uv) * 0.9 + vertexColor * CCM * 0.1;
     fragColor = color * ColorModulator;
+    fragColor.a = a;
 }

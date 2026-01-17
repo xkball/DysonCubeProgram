@@ -1,6 +1,7 @@
 package com.xkball.dyson_cube_program.client.b3d.mesh;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTextureView;
@@ -29,7 +30,8 @@ import java.util.function.Supplier;
 public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     
     protected final String name;
-    protected final T renderSettings;
+    protected T renderSettings;
+    private RenderTarget override;
     protected final List<MeshBlock> meshes = new ArrayList<>();
     
     public MeshBundle(String name, T renderSettings) {
@@ -51,10 +53,15 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     public abstract void setupRenderPass(RenderPass renderPass);
     public abstract void endRenderPass(RenderPass renderPass);
     public void beforeSetupRenderPass(){}
+    public void afterEndRenderPass(){}
     public abstract @Nullable GpuTextureView getColorTarget();
     public abstract @Nullable GpuTextureView getDepthTarget();
     public abstract VertexFormat.Mode getVertexFormatMode();
     public abstract VertexFormat getVertexFormat();
+    
+    public void setOverrideTarget(RenderTarget override){
+        this.override = override;
+    }
     
     public MeshBundle<T> append(MeshBlock meshBlock){
         this.meshes.add(meshBlock);
@@ -107,11 +114,11 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
     }
     
     public void render(PoseStack poseStack, @Nullable GLCommandList cmdList, GpuTextureView colorTarget, GpuTextureView depthTarget) {
-        if(colorTarget == null || depthTarget == null) return;
-        if(this.meshes.isEmpty()) return;
+        var meshes = this.getMeshes();
+        if(meshes.isEmpty()) return;
         
-        var transformList = new DynamicUniforms.Transform[this.meshes.size()];
-        for(int i = 0; i < this.meshes.size(); i++){
+        var transformList = new DynamicUniforms.Transform[meshes.size()];
+        for(int i = 0; i < meshes.size(); i++){
             poseStack.pushPose();
             var setup = meshes.get(i).poseSetup;
             setup.accept(poseStack);
@@ -122,11 +129,16 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
         var transformBuffers = RenderSystem.getDynamicUniforms().writeTransforms(transformList);
         
         this.beforeSetupRenderPass();
+        if(this.override != null){
+            colorTarget = this.override.getColorTextureView();
+            depthTarget = this.override.getDepthTextureView();
+            this.override = null;
+        }
         try (var renderpass = new ExtendedRenderPass(ClientUtils.getCommandEncoder()
                 .createRenderPass(() -> name + " mesh bundle rendering",colorTarget, OptionalInt.empty(), depthTarget, OptionalDouble.empty()))){
             RenderSystem.bindDefaultUniforms(renderpass);
             this.setupRenderPass(renderpass);
-            for(int i = 0; i < this.meshes.size(); i++) {
+            for(int i = 0; i < meshes.size(); i++) {
                 var instanceInfo = meshes.get(i).instanceInfo;
                 if(instanceInfo.instanceCount() > 1){
                     assert instanceInfo.ssboName() != null;
@@ -143,6 +155,7 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
             }
             this.endRenderPass(renderpass);
         }
+        this.afterEndRenderPass();
     }
     
     @Override
@@ -153,6 +166,14 @@ public abstract class MeshBundle<T> implements ICloseOnExit<MeshBundle<T>> {
                 mesh.instanceInfo.ssboBuffer().buffer().close();
             }
         }
+    }
+    
+    public T getRenderSettings() {
+        return renderSettings;
+    }
+    
+    public List<MeshBlock> getMeshes() {
+        return meshes;
     }
     
     public record MeshBlock(Consumer<PoseStack> poseSetup, InstanceInfo instanceInfo, CachedMesh mesh) {

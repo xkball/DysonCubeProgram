@@ -3,6 +3,7 @@ package com.xkball.dyson_cube_program.client.renderer.block_entity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
+import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
 import com.xkball.dyson_cube_program.client.renderer.dysonsphere.DysonSphereRenderer;
 import com.xkball.dyson_cube_program.common.block_entity.DebugEntityBlockEntity;
@@ -36,14 +37,17 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     }
     
     public void render(Vector3f pos, PoseStack poseStack) {
+        TheSunRenderer.drawSunAt(poseStack,pos,TheSunRenderer.SUN_COLOR);
         DCPUniforms.CUSTOM_COLOR_MODULATOR.updateUnsafe(b -> b.putVec4(ColorUtils.Vectorization.argbColor(TheSunRenderer.SUN_COLOR)));
         poseStack.pushPose();
         var scale = 1/5000f;
         poseStack.scale(-1,1,1);
         poseStack.scale(scale, scale, scale);
+        sphereRenderer.renderBloom(poseStack);
+        DCPPostProcesses.BLOOM.applyAndFlush();
         sphereRenderer.render(poseStack);
         poseStack.popPose();
-        TheSunRenderer.drawSunAt(poseStack,pos,TheSunRenderer.SUN_COLOR);
+        
     }
     
     @Override

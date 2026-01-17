@@ -33,20 +33,20 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
                         RenderSystem.getModelViewMatrix(),
                         new Vector4f(1.0F, 1.0F, 1.0F, 1.0F),
                         new Vector3f(),
-                        this.renderSettings.state.textureTransform.getMatrix()
+                        this.getRenderSettings().state.textureTransform.getMatrix()
                 );
     }
     
     @Override
     public void setupRenderPass(RenderPass renderPass) {
-        renderPass.setPipeline(renderSettings.pipeline());
+        renderPass.setPipeline(this.getRenderSettings().pipeline());
         ScissorState scissorstate = RenderSystem.getScissorStateForRenderTypeDraws();
         if (scissorstate.enabled()) {
             renderPass.enableScissor(scissorstate.x(), scissorstate.y(), scissorstate.width(), scissorstate.height());
         }
         RenderSystem.bindDefaultUniforms(renderPass);
         renderPass.setUniform("DynamicTransforms", contextTransform);
-        for(var entry : renderSettings.state.getTextures().entrySet()) {
+        for(var entry : this.getRenderSettings().state.getTextures().entrySet()) {
             renderPass.bindTexture(entry.getKey(), entry.getValue().textureView(), entry.getValue().sampler());
         }
     }
@@ -57,7 +57,7 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
     
     @Override
     public @Nullable GpuTextureView getColorTarget() {
-        RenderTarget rendertarget = renderSettings.state.outputTarget.getRenderTarget();
+        RenderTarget rendertarget = this.getRenderSettings().state.outputTarget.getRenderTarget();
         return RenderSystem.outputColorTextureOverride != null
                 ? RenderSystem.outputColorTextureOverride
                 : rendertarget.getColorTextureView();
@@ -66,7 +66,7 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
     
     @Override
     public @Nullable GpuTextureView getDepthTarget() {
-        RenderTarget rendertarget =renderSettings.state.outputTarget.getRenderTarget();
+        RenderTarget rendertarget =this.getRenderSettings().state.outputTarget.getRenderTarget();
         return rendertarget.useDepth
                 ? (RenderSystem.outputDepthTextureOverride != null ? RenderSystem.outputDepthTextureOverride : rendertarget.getDepthTextureView())
                 : null;
@@ -75,11 +75,11 @@ public class MeshBundleWithRenderType extends MeshBundle<RenderType> {
     
     @Override
     public VertexFormat.Mode getVertexFormatMode() {
-        return renderSettings.mode();
+        return this.getRenderSettings().mode();
     }
     
     @Override
     public VertexFormat getVertexFormat() {
-        return renderSettings.format();
+        return this.getRenderSettings().format();
     }
 }
