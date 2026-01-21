@@ -9,7 +9,7 @@ import com.xkball.dyson_cube_program.client.renderer.dysonsphere.DysonSphereRend
 import com.xkball.dyson_cube_program.common.block_entity.DebugEntityBlockEntity;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
 import com.xkball.dyson_cube_program.test.DysonBluePrintTest;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;

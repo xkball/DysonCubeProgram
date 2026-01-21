@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.xkball.dyson_cube_program.api.client.IEndFrameListener;
 import com.xkball.dyson_cube_program.api.client.IUpdatable;
 import com.xkball.dyson_cube_program.client.b3d.extension.StateObjectCache;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.neoforged.neoforge.client.event.ClientResourceLoadFinishedEvent;

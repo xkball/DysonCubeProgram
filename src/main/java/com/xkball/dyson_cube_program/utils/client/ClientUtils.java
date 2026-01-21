@@ -1,10 +1,8 @@
-package com.xkball.dyson_cube_program.utils;
+package com.xkball.dyson_cube_program.utils.client;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.opengl.GlConst;
 import com.mojang.blaze3d.opengl.GlDevice;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
@@ -20,6 +18,8 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.xkball.dyson_cube_program.client.ClientEvent;
+import com.xkball.dyson_cube_program.utils.ColorUtils;
+import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -35,14 +35,12 @@ import net.neoforged.neoforge.client.blaze3d.validation.ValidationGpuDevice;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.NVShaderBufferLoad;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Scanner;
@@ -75,19 +73,6 @@ public class ClientUtils {
         return getCommandEncoder().createRenderPass(() -> name, colorTarget, OptionalInt.empty(), depthTarget, OptionalDouble.empty());
     }
     
-    public static void clear(RenderTarget target){
-        clear(target, true);
-    }
-    
-    public static void clear(RenderTarget target, boolean clearDepth){
-        if(target.useDepth && clearDepth){
-            getCommandEncoder().clearColorAndDepthTextures(Objects.requireNonNull(target.getColorTexture()),0,Objects.requireNonNull(target.getDepthTexture()),1d);
-        }
-        else {
-            getCommandEncoder().clearColorTexture(Objects.requireNonNull(target.getColorTexture()),0);
-        }
-    }
-    
     public static PoseStack fromPose(PoseStack.Pose pose){
         var result = new PoseStack();
         result.last().set(pose);
@@ -105,14 +90,6 @@ public class ClientUtils {
         buffer.addVertex(matrix, 0, 0, 100).setNormal(matrix, 0, 0, 1).setColor(0xFF0000FF);
     }
     
-    public static void copyFrameBufferColorTo(RenderTarget from, RenderTarget to) {
-            getCommandEncoder().copyTextureToTexture(Objects.requireNonNull(from.getColorTexture()), Objects.requireNonNull(to.getColorTexture()),0, 0, 0, 0, 0, from.width, from.height);
-    }
-    
-    public static void copyFrameBufferDepthTo(RenderTarget from, RenderTarget to) {
-        to.copyDepthFrom(from);
-    }
-    
     public static BufferBuilder beginWithRenderPipeline(RenderPipeline pipeline){
         return Tesselator.getInstance().begin(pipeline.getVertexFormatMode(),pipeline.getVertexFormat());
     }
@@ -126,12 +103,6 @@ public class ClientUtils {
         for(var quad : quads){
             builder.putBulkData(poseStack.last(),quad,color_.x,color_.y,color_.z,color_.w, LightTexture.pack(15,15), OverlayTexture.NO_OVERLAY);
         }
-    }
-    
-    public static long getNamedBufferAddrNV(int buffer){
-        var result = NVShaderBufferLoad.glGetNamedBufferParameterui64NV(buffer, NVShaderBufferLoad.GL_BUFFER_GPU_ADDRESS_NV);
-        NVShaderBufferLoad.glMakeNamedBufferResidentNV(buffer, GlConst.GL_READ_ONLY);
-        return result;
     }
     
     public static AbstractTexture getTexture(String texture){

@@ -10,7 +10,7 @@ import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.client.b3d.vertex.DCPVertexFormats;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;

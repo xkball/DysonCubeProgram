@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import com.xkball.dyson_cube_program.utils.math.Quad;
 import com.xkball.dyson_cube_program.utils.math.SphereGeometryUtils;
 import org.joml.Vector3f;

@@ -4,7 +4,7 @@ import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.xkball.dyson_cube_program.client.renderer.block_entity.DebugEntityBlockRenderer;
 import com.xkball.dyson_cube_program.common.DCPTempReg;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SkyRenderer;
 import org.joml.Vector3f;

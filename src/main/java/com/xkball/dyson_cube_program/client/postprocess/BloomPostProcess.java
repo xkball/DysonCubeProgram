@@ -8,7 +8,7 @@ import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
 import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.DCPRenderPipelines;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.GLUtils;
 import com.xkball.xorlib.api.annotation.SubscribeEventEnhanced;
 import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
@@ -91,7 +91,7 @@ public class BloomPostProcess extends AbstractPostProcess {
             }
         });
         var mainBuffer = Minecraft.getInstance().getMainRenderTarget();
-        ClientUtils.copyFrameBufferColorTo(composite,mainBuffer);
+        GLUtils.copyFrameBufferColorTo(composite,mainBuffer);
     }
     
     private void updateDownSamplerUniform(int i, boolean horizontal) {
@@ -125,7 +125,7 @@ public class BloomPostProcess extends AbstractPostProcess {
             throw new IllegalStateException("Already in a bloom pass.");
         }
         if(copyDepth){
-            ClientUtils.copyFrameBufferDepthTo(scr,this.swap);
+            GLUtils.copyFrameBufferDepthTo(scr,this.swap);
         }
         this.background = scr;
         this.inPass = true;
@@ -136,14 +136,14 @@ public class BloomPostProcess extends AbstractPostProcess {
         this.used+=1;
         this.inPass = false;
         if(copyDepth){
-            ClientUtils.copyFrameBufferDepthTo(this.swap, this.background);
+            GLUtils.copyFrameBufferDepthTo(this.swap, this.background);
         }
     }
     
     public void applyAndFlush(){
         if(this.used == 0) return;
         this.apply(swap);
-        ClientUtils.clear(swap,true);
+        GLUtils.clear(swap,true);
         this.background = null;
         this.used = 0;
     }

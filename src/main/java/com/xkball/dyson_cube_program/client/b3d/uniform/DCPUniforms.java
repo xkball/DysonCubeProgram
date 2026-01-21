@@ -2,7 +2,7 @@ package com.xkball.dyson_cube_program.client.b3d.uniform;
 
 import com.xkball.dyson_cube_program.api.client.UpdateWhen;
 import com.xkball.dyson_cube_program.client.renderer.TheSunRenderer;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import net.minecraft.client.Minecraft;
 import org.joml.Vector2f;

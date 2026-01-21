@@ -3,7 +3,7 @@ package com.xkball.dyson_cube_program.api.client;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.buffers.Std140SizeCalculator;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import org.lwjgl.system.MemoryUtil;
 
 import java.util.List;

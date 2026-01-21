@@ -13,7 +13,7 @@ import com.xkball.dyson_cube_program.api.client.ICloseOnExit;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedRenderPass;
 import com.xkball.dyson_cube_program.client.b3d.extension.GLCommandList;
 import com.xkball.dyson_cube_program.client.b3d.renderpass.ExtendedRenderPass;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import net.minecraft.client.renderer.DynamicUniforms;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

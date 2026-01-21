@@ -22,7 +22,7 @@ import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSpareBlueprintData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonSphereLayerData;
 import com.xkball.dyson_cube_program.graph.BFSHandler;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import com.xkball.dyson_cube_program.utils.ColorUtils;
 import com.xkball.dyson_cube_program.utils.math.HexGrid;
 import com.xkball.dyson_cube_program.utils.math.LatAndLon;

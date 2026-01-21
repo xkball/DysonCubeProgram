@@ -2,8 +2,8 @@ package com.xkball.dyson_cube_program.client.b3d.extension;
 
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.xkball.dyson_cube_program.utils.ClientUtils;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
+import com.xkball.dyson_cube_program.utils.client.GLUtils;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import org.lwjgl.opengl.NVCommandList;
@@ -90,7 +90,7 @@ public class CommandBufferBuilder {
     }
     
     public void bindVBO(int buffer, int binding){
-        var addr = ClientUtils.getNamedBufferAddrNV(buffer);
+        var addr = GLUtils.getNamedBufferAddrNV(buffer);
         var pointer = this.buffer.reserve(16);
         MemoryUtil.memPutInt(pointer, COMMAND_HEADER[NVCommandList.GL_ATTRIBUTE_ADDRESS_COMMAND_NV]);
         MemoryUtil.memPutInt(pointer + 4L, binding);
@@ -101,7 +101,7 @@ public class CommandBufferBuilder {
     }
     
     public void bindEBO(int buffer, VertexFormat.IndexType indexType){
-        var addr = ClientUtils.getNamedBufferAddrNV(buffer);
+        var addr = GLUtils.getNamedBufferAddrNV(buffer);
         var pointer = this.buffer.reserve(16);
         MemoryUtil.memPutInt(pointer, COMMAND_HEADER[NVCommandList.GL_ELEMENT_ADDRESS_COMMAND_NV]);
         MemoryUtil.memPutInt(pointer + 4L, VanillaUtils.getAddrHi(addr));
@@ -119,7 +119,7 @@ public class CommandBufferBuilder {
     
     public void bindUBO(int buffer, int binding, int offset, NVTokenShaderStage stage){
         assert offset % 256 == 0;
-        var addr = ClientUtils.getNamedBufferAddrNV(buffer);
+        var addr = GLUtils.getNamedBufferAddrNV(buffer);
         addr += offset;
         var pointer = this.buffer.reserve(16);
         MemoryUtil.memPutInt(pointer, COMMAND_HEADER[NVCommandList.GL_UNIFORM_ADDRESS_COMMAND_NV]);

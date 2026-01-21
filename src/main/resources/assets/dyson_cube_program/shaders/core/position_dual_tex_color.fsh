@@ -30,9 +30,9 @@ void main() {
     float lod = textureQueryLod(TexFront, texCoordFront).x;
     float scale = max(115 - lod*2, 100);
     vec2 uv = (texCoordFront-UVCenter) * scale/100.0 + UVCenter;
-    vec2 screenUV = gl_FragCoord.xy / size;
     if(uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0 || uv.x + uv.y < 0.5 || uv.x + uv.y > 1.5) discard;
     float a = 1.0;
+    vec2 screenUV = gl_FragCoord.xy / size;
     if(lod > 5.0 && (uv.x < 0.05 || uv.x > 0.95 || uv.y < 0.05 || uv.y > 0.95 || uv.x + uv.y < 0.55 || uv.x + uv.y > 1.45)){
         float noise = texture(TexNoise, screenUV).r;
         a = (a + noise) / 2.5;

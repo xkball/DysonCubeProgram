@@ -1,6 +1,6 @@
 package com.xkball.dyson_cube_program.utils.math;
 
-import com.xkball.dyson_cube_program.utils.ClientUtils;
+import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import org.joml.Vector3f;
 
 import javax.annotation.Nullable;
