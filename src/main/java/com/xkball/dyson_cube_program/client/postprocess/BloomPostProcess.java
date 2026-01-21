@@ -148,6 +148,10 @@ public class BloomPostProcess extends AbstractPostProcess {
         this.used = 0;
     }
     
+    public RenderTarget getSwapRenderTarget(){
+        return swap;
+    }
+    
     @SubscribeEventEnhanced
     public static void onLevelRender(RenderLevelStageEvent.AfterLevel event){
         DCPPostProcesses.BLOOM.applyAndFlush();

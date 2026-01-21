@@ -33,6 +33,7 @@ public class ExtendedRenderPipeline extends RenderPipeline {
     public final Map<String, UpdatableUBO> UBOBindings;
     public final Map<String, Supplier<Pair<GpuTextureView, GpuSampler>>> samplerBindings;
     public final List<String> SSBOs;
+    public final List<Pair<Integer, Supplier<GpuTextureView>>> multiTargetBindings;
     
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public ExtendedRenderPipeline(Identifier location, Identifier vertexShader,
@@ -46,11 +47,12 @@ public class ExtendedRenderPipeline extends RenderPipeline {
                                   float depthBiasScaleFactor, float depthBiasConstant,
                                   int sortKey, Optional<StencilTest> stencilTest,
                                   Map<String, UpdatableUBO> UBOBindings, Map<String, Supplier<Pair<GpuTextureView, GpuSampler>>> samplerBindings,
-                                  List<String> SSBOs) {
+                                  List<String> SSBOs, List<Pair<Integer, Supplier<GpuTextureView>>> multiTargetBindings) {
         super(location, vertexShader, fragmentShader, shaderDefines, samplers, uniforms, blendFunction, depthTestFunction, polygonMode, cull, writeColor, writeAlpha, writeDepth, colorLogic, vertexFormat, vertexFormatMode, depthBiasScaleFactor, depthBiasConstant, sortKey, stencilTest);
         this.UBOBindings = UBOBindings;
         this.samplerBindings = samplerBindings;
         this.SSBOs = SSBOs;
+        this.multiTargetBindings = multiTargetBindings;
     }
     
     public void apply(RenderPass renderPass) {
@@ -83,6 +85,7 @@ public class ExtendedRenderPipeline extends RenderPipeline {
         private final Map<String, UpdatableUBO> UBOBindings = new HashMap<>();
         public final Map<String, Supplier<Pair<GpuTextureView, GpuSampler>>> samplerBindings = new HashMap<>();
         private final List<String> SSBOs = new ArrayList<>();
+        private final List<Pair<Integer, Supplier<GpuTextureView>>> multiTargetBindings = new ArrayList<>();
         
         public Builder(){
             super();
@@ -100,6 +103,12 @@ public class ExtendedRenderPipeline extends RenderPipeline {
         
         public Builder withSSBO(String name){
             this.SSBOs.add(name);
+            return this;
+        }
+        
+        public Builder bindMultiTarget(int index, Supplier<GpuTextureView> texture){
+            if(index < 1 || index > 31) throw new IllegalArgumentException("Invalid multi-target index: " + index + ", must between 1 and 31");
+            this.multiTargetBindings.add(Pair.of(index, texture));
             return this;
         }
         
@@ -323,7 +332,8 @@ public class ExtendedRenderPipeline extends RenderPipeline {
                         this.stencilTest,
                         this.UBOBindings,
                         this.samplerBindings,
-                        this.SSBOs);
+                        this.SSBOs,
+                        this.multiTargetBindings);
             }
         }
         

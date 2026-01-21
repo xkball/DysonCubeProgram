@@ -24,7 +24,8 @@ uniform sampler2D TexNoise;
 in vec2 texCoordFront;
 in vec4 vertexColor;
 
-out vec4 fragColor;
+layout (location = 0) out vec4 fragColor;
+layout (location = 1) out vec4 bloomColor;
 
 void main() {
     float lod = textureQueryLod(TexFront, texCoordFront).x;
@@ -40,4 +41,5 @@ void main() {
     vec4 color = gl_FrontFacing ? (texture(TexFront, uv) * vertexColor) : texture(TexBack, uv) * 0.9 + vertexColor * CCM * 0.1;
     fragColor = color * ColorModulator;
     fragColor.a = a;
+    bloomColor = vec4(1.0);
 }

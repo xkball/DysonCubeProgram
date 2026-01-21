@@ -10,6 +10,7 @@ import com.mojang.datafixers.util.Pair;
 import com.xkball.dyson_cube_program.api.client.SamplerCacheCache;
 import com.xkball.dyson_cube_program.client.b3d.uniform.DCPUniforms;
 import com.xkball.dyson_cube_program.client.b3d.vertex.DCPVertexFormats;
+import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.utils.client.ClientUtils;
 import com.xkball.dyson_cube_program.utils.VanillaUtils;
 import net.minecraft.client.Minecraft;
@@ -71,6 +72,7 @@ public class DCPRenderPipelines {
             .bindUniform("CustomColorModulator", DCPUniforms.CUSTOM_COLOR_MODULATOR)
             .withUniform("ScreenSize", UniformType.UNIFORM_BUFFER)
             .bindUniform("ScreenSize", DCPUniforms.SCREEN_SIZE)
+            .bindMultiTarget(1,() -> DCPPostProcesses.BLOOM.getSwapRenderTarget().getColorTextureView())
             .withCull(false)
             .buildExtended();
     
