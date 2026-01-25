@@ -25,6 +25,7 @@ public class BloomPostProcess extends AbstractPostProcess {
     private final RenderTarget[] downSamplersV;
     private RenderTarget background;
     private int used = 0;
+    private int sizeFactor = 6;
     private boolean inPass = false;
     
     public BloomPostProcess(int xSize, int ySize) {
@@ -98,9 +99,16 @@ public class BloomPostProcess extends AbstractPostProcess {
         var factor = 2 << i;
         DCPUniforms.BLOOM_DOWN_SAMPLER_UNIFORM.updateUnsafe(b ->
                 b.putFloat(factor)
-                .putInt((i + 1) * 6 + 1)
+                .putInt((i + 1) * sizeFactor + 1)
                 .putVec2(horizontal ? 1f : 0f, horizontal ? 0f : 1f)
                 .putVec2((float) xSize/factor, (float) ySize/factor));
+    }
+    
+    private void updateBloomCompositeUniform(float radius, float intensive){
+        DCPUniforms.BLOOM_COMPOSITE_UNIFORM.updateUnsafe(b ->
+                b.putVec2((float) xSize, (float) ySize)
+                .putFloat(radius)
+                .putFloat(intensive));
     }
     
 //    public void bindAndClear(boolean copyDepth) {
@@ -141,9 +149,15 @@ public class BloomPostProcess extends AbstractPostProcess {
     }
     
     public void applyAndFlush(){
+        applyAndFlush(6,1.0f,1.7f);
+    }
+    
+    public void applyAndFlush(int sizeFactor,float radius,float intensive){
         if(this.used == 0) return;
+        this.sizeFactor = sizeFactor;
+        this.updateBloomCompositeUniform(radius,intensive);
         this.apply(swap);
-        GLUtils.clear(swap,true);
+        GLUtils.clear(swap);
         this.background = null;
         this.used = 0;
     }

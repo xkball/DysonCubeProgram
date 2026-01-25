@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -105,7 +106,7 @@ public class CodecUtils {
                 @Override
                 public C decode(B buffer) {
                     int i = buffer.readInt();
-                    C c = factory.apply(Math.min(i, 65536));
+                    C c = factory.apply(Mth.clamp(i, 0, 65536));
                     
                     for (int j = 0; j < i; j++) {
                         c.add(codec.decode(buffer));

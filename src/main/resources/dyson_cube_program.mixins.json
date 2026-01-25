@@ -19,6 +19,7 @@
     "MixinSimpleTexture",
     "MixinSkyRenderer",
     "MixinSTD140Builder",
+    "MixinTextureContents",
     "MixinValidationRenderPass",
     "MixinValidationRenderPassAccess"
   ],

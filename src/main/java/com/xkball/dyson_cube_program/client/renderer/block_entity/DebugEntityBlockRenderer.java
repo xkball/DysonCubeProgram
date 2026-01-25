@@ -38,13 +38,12 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
     
     public void render(Vector3f pos, PoseStack poseStack) {
         TheSunRenderer.drawSunAt(poseStack,pos,TheSunRenderer.SUN_COLOR);
+        DCPPostProcesses.BLOOM.applyAndFlush();
         DCPUniforms.CUSTOM_COLOR_MODULATOR.updateUnsafe(b -> b.putVec4(ColorUtils.Vectorization.argbColor(TheSunRenderer.SUN_COLOR)));
         poseStack.pushPose();
-        var scale = 1/5000f;
+        var scale = 1/4000f;
         poseStack.scale(-1,1,1);
         poseStack.scale(scale, scale, scale);
-        sphereRenderer.renderBloom(poseStack);
-        DCPPostProcesses.BLOOM.applyAndFlush();
         sphereRenderer.render(poseStack);
         poseStack.popPose();
         

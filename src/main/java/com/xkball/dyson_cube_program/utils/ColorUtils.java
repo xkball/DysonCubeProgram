@@ -54,12 +54,7 @@ public class ColorUtils {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
     
-    public static int hsvaToRgba(int hsva) {
-        int h = (hsva >> 24) & 0xFF;
-        int s = (hsva >> 16) & 0xFF;
-        int v = (hsva >> 8)  & 0xFF;
-        int a = hsva & 0xFF;
-        
+    public static int hsvaToRgba(int h, int s, int v, int a) {
         float hue = h * 360f / 255f;
         float sat = s / 255f;
         float val = v / 255f;
@@ -89,6 +84,18 @@ public class ColorUtils {
         int b = Math.round((b1 + m) * 255);
         
         return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+    
+    public static int hsvaToRgba(Vector4f hsva) {
+        return hsvaToRgba((int) (hsva.x() * 255), (int) (hsva.y() * 255), (int) (hsva.z() * 255), (int) (hsva.w() * 255));
+    }
+    
+    public static int hsvaToRgba(int hsva) {
+        int h = (hsva >> 24) & 0xFF;
+        int s = (hsva >> 16) & 0xFF;
+        int v = (hsva >> 8)  & 0xFF;
+        int a = hsva & 0xFF;
+        return hsvaToRgba(h, s, v, a);
     }
     
     public static int editA(int argb, int a){

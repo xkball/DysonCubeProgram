@@ -29,6 +29,11 @@ public class DCPRenderPipelines {
             .withSSBO("InstanceTransformColor")
             .buildExtended();
     
+    public static final ExtendedRenderPipeline POSITION_COLOR_INSTANCED_NO_CULL = ExtendedRenderPipeline.extendedbuilder(POSITION_COLOR_INSTANCED)
+            .withLocation(VanillaUtils.modRL("position_color_instanced_no_cull"))
+            .withCull(false)
+            .buildExtended();
+    
     public static final ExtendedRenderPipeline POSITION_TEX_COLOR_INSTANCED = ExtendedRenderPipeline.extendedbuilder()
             .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
             .withLocation(VanillaUtils.modRL("position_tex_color_instanced"))
@@ -70,27 +75,7 @@ public class DCPRenderPipelines {
             .withUniform("Projection", UniformType.UNIFORM_BUFFER)
             .withUniform("CustomColorModulator", UniformType.UNIFORM_BUFFER)
             .bindUniform("CustomColorModulator", DCPUniforms.CUSTOM_COLOR_MODULATOR)
-            .withUniform("ScreenSize", UniformType.UNIFORM_BUFFER)
-            .bindUniform("ScreenSize", DCPUniforms.SCREEN_SIZE)
             .bindMultiTarget(1,() -> DCPPostProcesses.BLOOM.getSwapRenderTarget().getColorTextureView())
-            .withCull(false)
-            .buildExtended();
-    
-    public static final ExtendedRenderPipeline DYSON_SHELL_FLASH = ExtendedRenderPipeline.extendedbuilder()
-            .withVertexFormat(DCPVertexFormats.POSITION_DUAL_TEX_COLOR, VertexFormat.Mode.TRIANGLES)
-            .withLocation(VanillaUtils.modRL("dyson_shell_flash"))
-            .withVertexShader(VanillaUtils.modRL("core/position_dual_tex_color"))
-            .withFragmentShader(VanillaUtils.modRL("core/dyson_shell_flash"))
-            .withBlend(BlendFunction.TRANSLUCENT)
-            .withSampler("TexBack")
-            .bindSampler("TexBack",() -> {
-                var texture = ClientUtils.getTexture(VanillaUtils.modRL("textures/dyson_shell/dyson-shell-l.png"));
-                return Pair.of(texture.getTextureView(), SamplerCacheCache.NEAREST_CLAMP_MIPMAP);
-            })
-            .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
-            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
-            .withUniform("CustomColorModulator", UniformType.UNIFORM_BUFFER)
-            .bindUniform("CustomColorModulator", DCPUniforms.CUSTOM_COLOR_MODULATOR)
             .withCull(false)
             .buildExtended();
     

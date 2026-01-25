@@ -57,7 +57,7 @@ public abstract class MixinSimpleTexture extends ReloadableTexture {
                 if(this.dysonCubeProgram$usingMipmap.useGLGenerateMipmap()){
                     var old = GL30.glGetInteger(GL30.GL_TEXTURE_BINDING_2D);
                     GL30.glBindTexture(GL30.GL_TEXTURE_2D,textureId);
-                    GL30.glGenerateMipmap(textureId);
+                    GL30.glGenerateMipmap(GL30.GL_TEXTURE_2D);
                     GL30.glBindTexture(GL30.GL_TEXTURE_2D,old);
                 }
                 else{

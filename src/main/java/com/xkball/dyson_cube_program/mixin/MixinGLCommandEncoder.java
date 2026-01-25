@@ -3,10 +3,13 @@ package com.xkball.dyson_cube_program.mixin;
 import com.mojang.blaze3d.opengl.GlBuffer;
 import com.mojang.blaze3d.opengl.GlCommandEncoder;
 import com.mojang.blaze3d.opengl.GlRenderPass;
+import com.mojang.blaze3d.systems.RenderPass;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedGLProgram;
 import com.xkball.dyson_cube_program.api.client.mixin.IExtendedRenderPass;
 import com.xkball.dyson_cube_program.client.b3d.pipeline.ExtendedRenderPipeline;
 import com.xkball.dyson_cube_program.utils.client.GLUtils;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL43;
 import org.lwjgl.system.MemoryStack;
@@ -19,6 +22,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.nio.IntBuffer;
 import java.util.Collection;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.function.Supplier;
 
 import static org.lwjgl.system.MemoryStack.stackGet;
 
@@ -26,7 +32,14 @@ import static org.lwjgl.system.MemoryStack.stackGet;
 public class MixinGLCommandEncoder {
     
     @Unique
+    private GpuTextureView dysonCubeProgram$fboColor;
+    @Unique
     private boolean dysonCubeProgram$needClearDrawBuffers = false;
+    
+    @Inject(method = "createRenderPass(Ljava/util/function/Supplier;Lcom/mojang/blaze3d/textures/GpuTextureView;Ljava/util/OptionalInt;Lcom/mojang/blaze3d/textures/GpuTextureView;Ljava/util/OptionalDouble;)Lcom/mojang/blaze3d/systems/RenderPass;",at = @At("HEAD"))
+    public void onCreateRenderPass(Supplier<String> p_419957_, GpuTextureView color, OptionalInt p_410460_, @Nullable GpuTextureView p_423565_, OptionalDouble p_423486_, CallbackInfoReturnable<RenderPass> cir){
+        this.dysonCubeProgram$fboColor = color;
+    }
     
     @Inject(method = "trySetup",at = @At("RETURN"))
     public void onTrySetup(GlRenderPass renderPass, Collection<String> uniforms, CallbackInfoReturnable<Boolean> cir){
@@ -49,16 +62,15 @@ public class MixinGLCommandEncoder {
                     MemoryStack stack = stackGet();
                     int stackPointer = stack.getPointer();
                     try {
-                        IntBuffer buf = stack.ints(GL30.GL_COLOR_ATTACHMENT0);
+                        IntBuffer buf = stack.mallocInt(mrtBindings.size() + 1);
+                        buf.put(GL30.GL_COLOR_ATTACHMENT0);
+                        GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL30.GL_TEXTURE_2D, GLUtils.getGLId(this.dysonCubeProgram$fboColor), 0);
                         for(var entry : mrtBindings){
                             buf.put(GL30.GL_COLOR_ATTACHMENT0 + entry.getFirst());
                             var tex = GLUtils.getGLId(entry.getSecond().get());
                             GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0 + entry.getFirst(), GL30.GL_TEXTURE_2D, tex, 0);
-                            var q = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
-                            if(q != GL30.GL_FRAMEBUFFER_COMPLETE){
-                            
-                            }
                         }
+                        buf.flip();
                         GL30.glDrawBuffers(buf);
                     } finally {
                         stack.setPointer(stackPointer);
@@ -75,5 +87,6 @@ public class MixinGLCommandEncoder {
             this.dysonCubeProgram$needClearDrawBuffers = false;
             GL30.glDrawBuffers(GL30.GL_COLOR_ATTACHMENT0);
         }
+        this.dysonCubeProgram$fboColor = null;
     }
 }

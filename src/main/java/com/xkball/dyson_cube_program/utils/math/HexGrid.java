@@ -20,8 +20,6 @@ import static net.minecraft.util.Mth.lerp;
 @NonNullByDefault
 public class HexGrid {
     
-    public static final HexGrid LEVEL7 = withRecursionDepth(7);
-    public static final HexGrid LEVEL8 = withRecursionDepth(8);
     public final ArrayList<ArrayList<Node>> map;
     public final int layers;
     
@@ -218,7 +216,7 @@ public class HexGrid {
                     if(an != null && cn != null) {
                         var dan = calculateDelta(an,b,a);
                         var dcn = calculateDelta(cn,b,c);
-                        buildTriangle(pose,bufferBuilder,an,b.contextPos,cn,color, lerp(dan,u1,u0), lerp(dan,v1,v0),u1,u1, lerp(dcn,u1,u2), lerp(dcn,v1,v2));
+                        buildTriangle(pose,bufferBuilder,an,b.contextPos,cn,color, lerp(dan,u1,u0), lerp(dan,v1,v0),u1,v1, lerp(dcn,u1,u2), lerp(dcn,v1,v2));
                     }
                     else buildTriangle(pose,bufferBuilder,a.contextPos,b.contextPos,c.contextPos,color,u0,v0,u1,v1,u2,v2);
                 }

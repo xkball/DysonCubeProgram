@@ -2,8 +2,6 @@
   "using_mipmap": {
     "mipmapLevels": 10,
     "manualMipmaps": {
-      "9": "dyson_cube_program:textures/dyson-shell-e14-mipmap9.png",
-      "10": "dyson_cube_program:textures/dyson-shell-e14-mipmap10.png"
     },
     "useGLGenerateMipmap": false
   }

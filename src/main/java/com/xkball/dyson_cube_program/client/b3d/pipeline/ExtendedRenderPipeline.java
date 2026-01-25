@@ -76,6 +76,47 @@ public class ExtendedRenderPipeline extends RenderPipeline {
         return builder;
     }
     
+    public static Builder extendedbuilder(ExtendedRenderPipeline renderPipeline) {
+        var  builder = new Builder();
+        builder.location = Optional.of(renderPipeline.getLocation());
+        builder.fragmentShader = Optional.of(renderPipeline.getFragmentShader());
+        builder.vertexShader = Optional.of(renderPipeline.getVertexShader());
+        if (!renderPipeline.getShaderDefines().isEmpty()) {
+            ShaderDefines.Builder defBuilder = ShaderDefines.builder();
+            for (Map.Entry<String, String> entry : renderPipeline.getShaderDefines().values().entrySet()) {
+                defBuilder.define(entry.getKey(), entry.getValue());
+            }
+            for (String flag : renderPipeline.getShaderDefines().flags()) {
+                defBuilder.define(flag);
+            }
+            builder.definesBuilder = Optional.of(defBuilder);
+        }
+        if (!renderPipeline.getSamplers().isEmpty()) {
+            builder.samplers = Optional.of(new ArrayList<>(renderPipeline.getSamplers()));
+        }
+        if (!renderPipeline.getUniforms().isEmpty()) {
+            builder.uniforms = Optional.of(new ArrayList<>(renderPipeline.getUniforms()));
+        }
+        builder.depthTestFunction = Optional.of(renderPipeline.getDepthTestFunction());
+        builder.polygonMode = Optional.of(renderPipeline.getPolygonMode());
+        builder.cull = Optional.of(renderPipeline.isCull());
+        builder.writeColor = Optional.of(renderPipeline.isWriteColor());
+        builder.writeAlpha = Optional.of(renderPipeline.isWriteAlpha());
+        builder.writeDepth = Optional.of(renderPipeline.isWriteDepth());
+        builder.colorLogic = Optional.of(renderPipeline.getColorLogic());
+        builder.blendFunction = renderPipeline.getBlendFunction();
+        builder.vertexFormat = Optional.of(renderPipeline.getVertexFormat());
+        builder.vertexFormatMode = Optional.of(renderPipeline.getVertexFormatMode());
+        builder.depthBiasScaleFactor = renderPipeline.getDepthBiasScaleFactor();
+        builder.depthBiasConstant = renderPipeline.getDepthBiasConstant();
+        builder.stencilTest = renderPipeline.getStencilTest();
+        builder.UBOBindings.putAll(renderPipeline.UBOBindings);
+        builder.samplerBindings.putAll(renderPipeline.samplerBindings);
+        builder.SSBOs.addAll(renderPipeline.SSBOs);
+        builder.multiTargetBindings.addAll(renderPipeline.multiTargetBindings);
+        return builder;
+    }
+    
     public static boolean haveSSBO(RenderPipeline pipeline){
         return pipeline instanceof ExtendedRenderPipeline epp && !epp.SSBOs.isEmpty();
     }
