@@ -45,6 +45,7 @@ public class DebugEntityBlockRenderer implements BlockEntityRenderer<DebugEntity
         var scale = 1/4000f;
         poseStack.scale(-1,1,1);
         poseStack.scale(scale, scale, scale);
+        //todo 缩放应该重建模型
         poseStack.scale(this.scale,this.scale,this.scale);
         sphereRenderer.renderBloom(poseStack);
         DCPPostProcesses.BLOOM.applyAndFlush();

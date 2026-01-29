@@ -44,19 +44,31 @@ public record DysonNodeData(
     public static final StreamCodec<ByteBuf, DysonNodeData> STREAM_CODEC = new StreamCodec<>() {
         @Override
         public DysonNodeData decode(ByteBuf buf) {
-            buf.readInt();
+            var version = buf.readInt();
             int id = ByteBufCodecs.INT.decode(buf);
             int protoID = ByteBufCodecs.INT.decode(buf);
             boolean use = ByteBufCodecs.BOOL.decode(buf);
             boolean reserved = ByteBufCodecs.BOOL.decode(buf);
             Vector3f pos = CodecUtils.StreamCodecs.VECTOR3F.decode(buf);
             int spMax = ByteBufCodecs.INT.decode(buf);
-            int rid = ByteBufCodecs.INT.decode(buf);
+            int rid = 0;
+            if(version >= 2){
+                rid = ByteBufCodecs.INT.decode(buf);
+            }
             int frameTurn = ByteBufCodecs.INT.decode(buf);
-            int shellTurn = ByteBufCodecs.INT.decode(buf);
+            int shellTurn = 0;
+            if(version >= 1){
+                shellTurn = ByteBufCodecs.INT.decode(buf);
+            }
             int spReq = ByteBufCodecs.INT.decode(buf);
-            int cpReq = ByteBufCodecs.INT.decode(buf);
-            int color = ByteBufCodecs.INT.decode(buf);
+            int cpReq = 0;
+            if(version >= 4){
+                cpReq = ByteBufCodecs.INT.decode(buf);
+            }
+            int color = 0;
+            if(version >= 5){
+                color = ByteBufCodecs.INT.decode(buf);
+            }
             return new DysonNodeData(id, protoID, use, reserved, pos, spMax, rid, frameTurn, shellTurn, spReq, cpReq, color);
         }
         

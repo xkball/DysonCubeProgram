@@ -261,7 +261,7 @@ public class DysonSphereRenderer {
     
     private void renderSingleSwarm(DysonOrbitData orbit, int sailCount, Vector4f color,RandomSource rand, Consumer<PoseStack> setup, PoseStack poseStack){
         var sailBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DYSON_SAIL);
-        var c = ColorUtils.hsvaToRgba(color);
+        var c = color.equals(MathConstants.ZERO_VEC4) ? ColorUtils.getColor(255,255,255,255) : ColorUtils.hsvaToRgba(color);
         sailBuilder.addVertex( 0,0,0).setColor(0);
         sailBuilder.addVertex( 1,0,0).setColor(0);
         sailBuilder.addVertex( 0.5f, 0, (float) (Math.sqrt(3)/2f)).setColor(0);

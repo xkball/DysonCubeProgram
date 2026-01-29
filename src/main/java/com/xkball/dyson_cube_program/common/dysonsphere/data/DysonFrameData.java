@@ -34,7 +34,7 @@ public record DysonFrameData(
     public static final StreamCodec<ByteBuf, DysonFrameData> STREAM_CODEC = new StreamCodec<>() {
         @Override
         public DysonFrameData decode(ByteBuf buf) {
-            buf.readInt();
+            var version = buf.readInt();
             int id = ByteBufCodecs.INT.decode(buf);
             int protoID = ByteBufCodecs.INT.decode(buf);
             boolean reserved = ByteBufCodecs.BOOL.decode(buf);
@@ -42,7 +42,10 @@ public record DysonFrameData(
             int nodeBID = ByteBufCodecs.INT.decode(buf);
             boolean euler = ByteBufCodecs.BOOL.decode(buf);
             int spMax = ByteBufCodecs.INT.decode(buf);
-            int color = ByteBufCodecs.INT.decode(buf);
+            int color = 0;
+            if(version >= 1){
+                color = ByteBufCodecs.INT.decode(buf);
+            }
             return new DysonFrameData(id, protoID, reserved, nodeAID, nodeBID, euler, spMax, color);
         }
         

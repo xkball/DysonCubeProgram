@@ -1,6 +1,7 @@
 package com.xkball.dyson_cube_program.common.dysonsphere.data;
 
 
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.xkball.dyson_cube_program.api.annotation.NonNullByDefault;
@@ -11,6 +12,7 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import org.joml.Vector4f;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.nio.ByteOrder;
@@ -91,6 +93,9 @@ public record DysonSpareBlueprintData(
         }
     };
     
+    private static final Logger LOGGER = LogUtils.getLogger();
+    
+    @SuppressWarnings("deprecation")
     public static DysonSpareBlueprintData parse(String str){
         var l1data = str.split("\"");
         var data = VanillaUtils.unGzip(VanillaUtils.unBase64(l1data[1]));
@@ -112,29 +117,53 @@ public record DysonSpareBlueprintData(
         List<DysonSphereLayerData> layers = new ArrayList<>();
         DysonSphereLayerData singleLayer = null;
         
-        @SuppressWarnings("deprecation")
         var byteBuf = Unpooled.copiedBuffer(data).order(ByteOrder.LITTLE_ENDIAN);
         
-        byteBuf.readInt();
-        if(type == DysonBlueprintType.SwarmOrbits || type == DysonBlueprintType.DysonSphere){
-            editorRenderMaskS = byteBuf.readInt();
-            gameRenderMaskS = byteBuf.readInt();
-            for(var i = 0; i < 20; i++){
-                swarmOrbits.add(DysonOrbitData.STREAM_CODEC.decode(byteBuf));
+        var version = byteBuf.readInt();
+        if(version == 0){
+            if(type == DysonBlueprintType.SwarmOrbits || type == DysonBlueprintType.DysonSphere){
+                editorRenderMaskS = byteBuf.readInt();
+                gameRenderMaskS = byteBuf.readInt();
+                for(var i = 0; i < 20; i++){
+                    swarmOrbits.add(DysonOrbitData.STREAM_CODEC.decode(byteBuf));
+                }
+                sailOrbitColorHSVA = CodecUtils.StreamCodecs.VECTOR4F_LIST.decode(byteBuf);
             }
-            sailOrbitColorHSVA = CodecUtils.StreamCodecs.VECTOR4F_LIST.decode(byteBuf);
-        }
-        
-        if(type == DysonBlueprintType.Layers || type == DysonBlueprintType.DysonSphere){
-            editorRenderMaskL = byteBuf.readInt();
-            gameRenderMaskL = byteBuf.readInt();
-            layerOrbits = DysonOrbitData.NULLABLE_LIST_STREAM_CODEC.decode(byteBuf);
-            layers = DysonSphereLayerData.NULLABLE_LIST_STREAM_CODEC.decode(byteBuf);
             
+            if(type == DysonBlueprintType.Layers || type == DysonBlueprintType.DysonSphere){
+                editorRenderMaskL = byteBuf.readInt();
+                gameRenderMaskL = byteBuf.readInt();
+                layerOrbits = DysonOrbitData.NULLABLE_LIST_STREAM_CODEC.decode(byteBuf);
+                layers = DysonSphereLayerData.NULLABLE_LIST_STREAM_CODEC.decode(byteBuf);
+                
+            }
+            
+            if(type == DysonBlueprintType.SingleLayer){
+                singleLayer = DysonSphereLayerData.STREAM_CODEC.decode(byteBuf);
+            }
         }
-        
-        if(type == DysonBlueprintType.SingleLayer){
-            singleLayer = DysonSphereLayerData.STREAM_CODEC.decode(byteBuf);
+        else {
+            LOGGER.warn("Old version dyson blueprint format.May can not be parsed.");
+            byteBuf = Unpooled.copiedBuffer(data).order(ByteOrder.LITTLE_ENDIAN);
+            if(type == DysonBlueprintType.SwarmOrbits || type == DysonBlueprintType.DysonSphere){
+                editorRenderMaskS = byteBuf.readInt();
+                gameRenderMaskS = byteBuf.readInt();
+                for(var i = 0; i < 20; i++){
+                    swarmOrbits.add(DysonOrbitData.OLD_FORMAT_STREAM_CODEC.decode(byteBuf));
+                    sailOrbitColorHSVA.add(new Vector4f());
+                }
+            }
+
+            if(type == DysonBlueprintType.Layers || type == DysonBlueprintType.DysonSphere){
+                editorRenderMaskL =  byteBuf.readInt();
+                gameRenderMaskL = byteBuf.readInt();
+                layerOrbits = DysonOrbitData.OLD_FORMAT_NULLABLE_LIST_STREAM_CODEC.decode(byteBuf);
+                layers = DysonSphereLayerData.NULLABLE_LIST_STREAM_CODEC.decode(byteBuf);
+            }
+            
+            if(type == DysonBlueprintType.SingleLayer){
+                singleLayer = DysonSphereLayerData.STREAM_CODEC.decode(byteBuf);
+            }
         }
         return new DysonSpareBlueprintData(timeStamp,gameVersion,type,latLimit,editorRenderMaskS,gameRenderMaskS,swarmOrbits,sailOrbitColorHSVA,editorRenderMaskL,gameRenderMaskL,layerOrbits,layers,singleLayer);
     }

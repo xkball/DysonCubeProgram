@@ -34,11 +34,14 @@ public record DysonShellData(
     public static final StreamCodec<ByteBuf, DysonShellData> STREAM_CODEC = new StreamCodec<>() {
         @Override
         public DysonShellData decode(ByteBuf buffer) {
-            buffer.readInt();
+            var version = buffer.readInt();
             var id = buffer.readInt();
             var protoID = buffer.readInt();
             var randSeed = buffer.readInt();
-            var color = buffer.readInt();
+            var color = 0;
+            if(version >= 2){
+                color = buffer.readInt();
+            }
             var nodes = CodecUtils.StreamCodecs.INT_LIST.decode(buffer);
             return new DysonShellData(id, protoID, randSeed, color, nodes);
         }

@@ -54,7 +54,7 @@ public record DysonSphereLayerData(
     public static final StreamCodec<ByteBuf, DysonSphereLayerData> STREAM_CODEC = new StreamCodec<>() {
         @Override
         public DysonSphereLayerData decode(ByteBuf buf) {
-            buf.readInt();
+            var version = buf.readInt();
             int nodeCapacity = ByteBufCodecs.INT.decode(buf);
             int nodeCursor = ByteBufCodecs.INT.decode(buf);
             int nodeRecycleCursor = ByteBufCodecs.INT.decode(buf);
@@ -70,15 +70,19 @@ public record DysonSphereLayerData(
             int shellRecycleCursor = ByteBufCodecs.INT.decode(buf);
             List<DysonShellData> shellPool = CodecUtils.StreamCodecs.fixLengthNullableList(ArrayList::new,DysonShellData.STREAM_CODEC,shellCursor-1).decode(buf);
             List<Integer> shellRecycle = CodecUtils.StreamCodecs.fixLengthList(ArrayList::new,ByteBufCodecs.INT,shellRecycleCursor).decode(buf);
-            int paintGridMode = ByteBufCodecs.INT.decode(buf);
-            List<Integer> cellColors = null;
-            if(buf.readBoolean()) cellColors = CodecUtils.StreamCodecs.INT_LIST.decode(buf);
+            int paintGridMode = 0;
+            List<Integer> cellColors = new ArrayList<>();
+            if(version >= 1){
+                paintGridMode = ByteBufCodecs.INT.decode(buf);
+                if(buf.readBoolean()) cellColors = CodecUtils.StreamCodecs.INT_LIST.decode(buf);
+            }
+
             return new DysonSphereLayerData(nodeCapacity, nodeCursor, nodeRecycleCursor, nodePool, nodeRecycle, frameCapacity, frameCursor, frameRecycleCursor, framePool, frameRecycle, shellCapacity, shellCursor, shellRecycleCursor, shellPool, shellRecycle, paintGridMode, cellColors);
         }
         
         @Override
         public void encode(ByteBuf buf, DysonSphereLayerData value) {
-            buf.writeInt(2);
+            buf.writeInt(1);
             ByteBufCodecs.INT.encode(buf, value.nodeCapacity());
             ByteBufCodecs.INT.encode(buf, value.nodeCursor());
             ByteBufCodecs.INT.encode(buf, value.nodeRecycleCursor());

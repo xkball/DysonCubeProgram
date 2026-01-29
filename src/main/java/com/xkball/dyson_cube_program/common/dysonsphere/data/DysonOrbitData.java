@@ -50,9 +50,31 @@ public record DysonOrbitData (
         
     };
     
+    public static final StreamCodec<ByteBuf, DysonOrbitData> OLD_FORMAT_STREAM_CODEC = new StreamCodec<>() {
+        @Override
+        public DysonOrbitData decode(ByteBuf buf) {
+            int id = ByteBufCodecs.INT.decode(buf);
+            float radius = ByteBufCodecs.FLOAT.decode(buf);
+            Quaternionf rotation = CodecUtils.StreamCodecs.QUATERNIONF.decode(buf);
+            boolean enable = ByteBufCodecs.BOOL.decode(buf);
+            return new DysonOrbitData(id, radius, rotation, enable);
+        }
+        
+        @Override
+        public void encode(ByteBuf buf, DysonOrbitData value) {
+            ByteBufCodecs.INT.encode(buf, value.id());
+            ByteBufCodecs.FLOAT.encode(buf, value.radius());
+            ByteBufCodecs.QUATERNIONF.encode(buf, value.rotation());
+            ByteBufCodecs.BOOL.encode(buf, value.enable());
+        }
+        
+    };
+    
     public static final StreamCodec<ByteBuf, List<DysonOrbitData>> LIST_STREAM_CODEC = CodecUtils.StreamCodecs.collection(ArrayList::new, DysonOrbitData.STREAM_CODEC);
     
     public static final StreamCodec<ByteBuf, List<DysonOrbitData>> NULLABLE_LIST_STREAM_CODEC = CodecUtils.StreamCodecs.nullableList(ArrayList::new, DysonOrbitData.STREAM_CODEC);
+    
+    public static final StreamCodec<ByteBuf, List<DysonOrbitData>> OLD_FORMAT_NULLABLE_LIST_STREAM_CODEC = CodecUtils.StreamCodecs.nullableList(ArrayList::new, DysonOrbitData.OLD_FORMAT_STREAM_CODEC);
     
     public boolean isValidOrbit(){
         return radius > 0;

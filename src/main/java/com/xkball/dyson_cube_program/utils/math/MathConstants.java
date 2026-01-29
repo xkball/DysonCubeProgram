@@ -2,6 +2,7 @@ package com.xkball.dyson_cube_program.utils.math;
 
 import com.xkball.dyson_cube_program.client.renderer.SphereHexGridMesh;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 public class MathConstants {
     
@@ -16,4 +17,6 @@ public class MathConstants {
     public static final Vector3f ICOSAHEDRON1 = SphereHexGridMesh.icosahedronVertices.get(1);
     public static final Vector3f ICOSAHEDRON2 = SphereHexGridMesh.icosahedronVertices.get(2);
     public static final Vector3f ICOSAHEDRON_FACE1_CENTER = new Vector3f().add(ICOSAHEDRON0).add(ICOSAHEDRON1).add(ICOSAHEDRON2).normalize();
+    
+    public static final Vector4f ZERO_VEC4 = new Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
 }
