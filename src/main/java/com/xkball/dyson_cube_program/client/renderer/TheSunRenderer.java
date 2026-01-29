@@ -22,7 +22,7 @@ public class TheSunRenderer {
     
     private static final MeshBundle<RenderPipeline> RING_MESH = MeshBundle.of("ring", DCPRenderPipelines.SUN_2, TheSunRenderer::createRingMesh).setCloseOnExit();
     
-    public static Vector3f renderingCenter = new Vector3f();
+    public static final Vector3f renderingCenter = new Vector3f();
     
     public static int contextColor = -1;
     
@@ -36,7 +36,7 @@ public class TheSunRenderer {
     };
     
     public static void setRenderingCenter(Vector3f center) {
-        renderingCenter = center;
+        renderingCenter.set(center);
     }
     
     public static void createCubeSphereMesh(BufferBuilder builder, int edgePoints, boolean negative){

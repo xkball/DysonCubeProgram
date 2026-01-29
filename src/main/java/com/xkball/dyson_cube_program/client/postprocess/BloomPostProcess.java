@@ -47,8 +47,8 @@ public class BloomPostProcess extends AbstractPostProcess {
         this.downSamplersV = new RenderTarget[samplerDepth];
         for(var i = 0; i < samplerDepth; i++) {
             var factor = 2 << i;
-            downSamplersH[i] = new TextureTarget("bloom_down_h_"+i, xSize/factor, ySize/factor, false);
-            downSamplersV[i] = new TextureTarget("bloom_down_v_"+i, xSize/factor, ySize/factor, false);
+            downSamplersH[i] = new TextureTarget("bloom_down_h_"+i, Math.max(1,xSize/factor), Math.max(1,ySize/factor), false);
+            downSamplersV[i] = new TextureTarget("bloom_down_v_"+i, Math.max(1,xSize/factor), Math.max(1,ySize/factor), false);
         }
     }
     

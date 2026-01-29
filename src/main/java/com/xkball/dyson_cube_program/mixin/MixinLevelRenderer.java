@@ -14,7 +14,7 @@ public class MixinLevelRenderer {
     
     @Inject(method = "resize",at = @At("HEAD"))
     public void onResize(int width, int height, CallbackInfo ci){
-        DCPUniforms.SCREEN_SIZE.updateUnsafe(b -> b.putVec2(width, height));
+        DCPUniforms.SCREEN_SIZE.update();
         DCPPostProcesses.resize(width, height);
     }
     

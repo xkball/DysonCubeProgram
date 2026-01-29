@@ -90,11 +90,16 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
         return size;
     }
     
-    public record BuildUniformBlock(Consumer<Std140Builder> updateFunc) implements DynamicUniformStorage.DynamicUniform{
+    private record BuildUniformBlock(Consumer<Std140Builder> updateFunc) implements DynamicUniformStorage.DynamicUniform{
         @Override
         public void write(ByteBuffer buffer) {
             var builder = Std140Builder.intoBuffer(buffer);
             this.updateFunc.accept(builder);
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            return false;
         }
     }
     
@@ -102,7 +107,7 @@ public class UpdatableUBO implements ICloseOnExit<UpdatableUBO>, IEndFrameListen
         
         private final String name;
         private final Std140SizeCalculator calculator = new Std140SizeCalculator();
-        private final List<Consumer<Std140Builder>> builders = new ArrayList<>();
+            private final List<Consumer<Std140Builder>> builders = new ArrayList<>();
         private boolean closeOnExit = false;
         private UpdateWhen updateWhen = UpdateWhen.Manual;
         

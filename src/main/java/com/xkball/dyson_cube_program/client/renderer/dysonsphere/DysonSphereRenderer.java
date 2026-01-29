@@ -14,6 +14,7 @@ import com.xkball.dyson_cube_program.client.b3d.mesh.InstanceInfo;
 import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundle;
 import com.xkball.dyson_cube_program.client.b3d.mesh.MeshBundleWithRenderPipeline;
 import com.xkball.dyson_cube_program.client.b3d.uniform.TransMatColor;
+import com.xkball.dyson_cube_program.client.postprocess.DCPPostProcesses;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonElementType;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonNodeData;
 import com.xkball.dyson_cube_program.common.dysonsphere.data.DysonOrbitData;
@@ -52,6 +53,7 @@ public class DysonSphereRenderer {
     private static final Logger LOGGER = LogUtils.getLogger();
     public DysonSpareBlueprintData data;
     private final Map<RenderPipeline, MeshBundle<RenderPipeline>> meshes = new LinkedHashMap<>();
+    private MeshBundle<RenderPipeline> inBloom = new MeshBundleWithRenderPipeline("dyson_sail",DCPRenderPipelines.DYSON_SAIL);
     private static final int defaultColor = ColorUtils.getColor(161,227,255,255);
     public DysonSphereRenderer(DysonSpareBlueprintData data) {
         this.data = data;
@@ -62,11 +64,12 @@ public class DysonSphereRenderer {
         for(var entry : meshes.entrySet()){
             entry.getValue().close();
         }
+        inBloom.close();
+        inBloom = new MeshBundleWithRenderPipeline("dyson_sail",DCPRenderPipelines.DYSON_SAIL);
         meshes.clear();
         meshes.put(DCPRenderPipelines.POSITION_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_color_instanced", DCPRenderPipelines.POSITION_COLOR_INSTANCED));
         meshes.put(DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED, new MeshBundleWithRenderPipeline("dyson_sphere_position_tex_color_instanced", DCPRenderPipelines.POSITION_TEX_COLOR_INSTANCED));
         meshes.put(DCPRenderPipelines.POSITION_DUAL_TEX_COLOR,new MeshBundleWithRenderPipeline("dyson_shell",DCPRenderPipelines.POSITION_DUAL_TEX_COLOR));
-        meshes.put(DCPRenderPipelines.POSITION_COLOR_INSTANCED_NO_CULL,new MeshBundleWithRenderPipeline("dyson_sail",DCPRenderPipelines.POSITION_COLOR_INSTANCED_NO_CULL));
         var poseStack = new PoseStack();
         var elements = data.type().elementTypes;
         if(elements.contains(DysonElementType.LAYER)){
@@ -85,7 +88,6 @@ public class DysonSphereRenderer {
         }
         if (elements.contains(DysonElementType.SWARMS)){
             var rand = RandomSource.create(time);
-            
             for(int i = 0; i < data.swarmOrbits().size(); i++){
                 var orbit = data.swarmOrbits().get(i);
                 if(!orbit.isValidOrbit()) continue;
@@ -96,6 +98,12 @@ public class DysonSphereRenderer {
         time = System.currentTimeMillis() - time;
         LOGGER.info("DysonSphereRenderer buildMeshes time: {}",time);
         return time;
+    }
+    
+    public void renderBloom(PoseStack poseStack){
+        var target = DCPPostProcesses.BLOOM.startPass(Minecraft.getInstance().getMainRenderTarget(), true);
+        inBloom.render(poseStack, null, target.getColorTextureView(), target.getDepthTextureView());
+        DCPPostProcesses.BLOOM.endPass(true);
     }
     
     public void render(PoseStack poseStack){
@@ -111,7 +119,6 @@ public class DysonSphereRenderer {
     private void renderSingleLayer(@Nullable DysonOrbitData orbit, DysonSphereLayerData layer, PoseStack poseStack){
         var nodes = IDGetter.toMap(layer.nodePool());
         var setup = rotateOrbit(orbit);
-        
         
         this.renderDysonNodes(poseStack, nodes, orbit, setup);
         this.renderDysonFrame(poseStack, nodes, layer, setup);
@@ -253,20 +260,24 @@ public class DysonSphereRenderer {
     }
     
     private void renderSingleSwarm(DysonOrbitData orbit, int sailCount, Vector4f color,RandomSource rand, Consumer<PoseStack> setup, PoseStack poseStack){
-        var sailBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.POSITION_COLOR_INSTANCED_NO_CULL);
+        var sailBuilder = ClientUtils.beginWithRenderPipeline(DCPRenderPipelines.DYSON_SAIL);
         var c = ColorUtils.hsvaToRgba(color);
-        sailBuilder.addVertex( 0,0,0).setColor(c);
-        sailBuilder.addVertex( 1,0,0).setColor(c);
-        sailBuilder.addVertex( 0.5f, 0, (float) (Math.sqrt(3)/2f)).setColor(c);
-        sailBuilder.addVertex(-0.5f, 0, (float) (Math.sqrt(3)/2f)).setColor(c);
-        sailBuilder.addVertex( 0,0,0).setColor(c);
-        sailBuilder.addVertex(-0.5f, 0, (float) (Math.sqrt(3)/2f)).setColor(c);
-        sailBuilder.addVertex(-1,0,0).setColor(c);
-        sailBuilder.addVertex(-0.5f, 0, (float) (-Math.sqrt(3)/2f)).setColor(c);
-        sailBuilder.addVertex( 0,0,0).setColor(c);
-        sailBuilder.addVertex(-0.5f, 0, (float) (-Math.sqrt(3)/2f)).setColor(c);
-        sailBuilder.addVertex( 0.5f, 0, (float) (-Math.sqrt(3)/2f)).setColor(c);
-        sailBuilder.addVertex( 1,0,0).setColor(c);
+        sailBuilder.addVertex( 0,0,0).setColor(0);
+        sailBuilder.addVertex( 1,0,0).setColor(0);
+        sailBuilder.addVertex( 0.5f, 0, (float) (Math.sqrt(3)/2f)).setColor(0);
+        sailBuilder.addVertex(-0.5f, 0, (float) (Math.sqrt(3)/2f)).setColor(0);
+        sailBuilder.addVertex( 0,0,0).setColor(0);
+        sailBuilder.addVertex(-0.5f, 0, (float) (Math.sqrt(3)/2f)).setColor(0);
+        sailBuilder.addVertex(-1,0,0).setColor(0);
+        sailBuilder.addVertex(-0.5f, 0, (float) (-Math.sqrt(3)/2f)).setColor(0);
+        sailBuilder.addVertex( 0,0,0).setColor(0);
+        sailBuilder.addVertex(-0.5f, 0, (float) (-Math.sqrt(3)/2f)).setColor(0);
+        sailBuilder.addVertex( 0.5f, 0, (float) (-Math.sqrt(3)/2f)).setColor(0);
+        sailBuilder.addVertex( 1,0,0).setColor(0);
+        sailBuilder.addVertex( 0,0,0).setColor(ColorUtils.getColor(0,0,0,255));
+        sailBuilder.addVertex( 0,0,0).setColor(ColorUtils.getColor(255,0,0,255));
+        sailBuilder.addVertex( 0,0,0).setColor(ColorUtils.getColor(255,255,0,255));
+        sailBuilder.addVertex( 0,0,0).setColor(ColorUtils.getColor(0,255,0,255));
         var transformList = new ArrayList<TransMatColor>();
         for (int i = 0; i < sailCount; i++) {
             var r = Mth.frac(rand.nextFloat())*Math.PI*2;
@@ -277,13 +288,13 @@ public class DysonSphereRenderer {
             poseStack.translate(pos.x,pos.y,pos.z);
             poseStack.mulPose(facingYOrigin(pos));
             poseStack.scale(20,20,20);
-            transformList.add(new TransMatColor(new Matrix4f(poseStack.last().pose()),new Vector4f(1,1,1,1)));
+            transformList.add(new TransMatColor(new Matrix4f(poseStack.last().pose()),ColorUtils.Vectorization.argbColor(c)));
             poseStack.popPose();
         }
         var mesh = sailBuilder.buildOrThrow();
         var buffer = ISTD140Writer.batchBuildStd140Block(transformList);
         var instanceInfo = new InstanceInfo(sailCount,"InstanceTransformColor",buffer.slice());
-        meshes.computeIfPresent(DCPRenderPipelines.POSITION_COLOR_INSTANCED_NO_CULL,(k,v)-> v.appendImmediately(mesh,setup,instanceInfo));
+        inBloom.appendImmediately(mesh,setup,instanceInfo);
     }
     
     private static Quaternionf facingYOrigin(Vector3f pos){

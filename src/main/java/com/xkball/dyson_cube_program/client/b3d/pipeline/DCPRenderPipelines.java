@@ -79,6 +79,20 @@ public class DCPRenderPipelines {
             .withCull(false)
             .buildExtended();
     
+    public static final ExtendedRenderPipeline DYSON_SAIL = ExtendedRenderPipeline.extendedbuilder()
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+            .withLocation(VanillaUtils.modRL("dyson_sail"))
+            .withVertexShader(VanillaUtils.modRL("core/dyson_sail"))
+            .withFragmentShader(VanillaUtils.modRL("core/dyson_sail"))
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+            .withUniform("ScreenSize", UniformType.UNIFORM_BUFFER)
+            .bindUniform("ScreenSize", DCPUniforms.SCREEN_SIZE)
+            .withSSBO("InstanceTransformColor")
+            .withCull(false)
+            .buildExtended();
+    
     public static final RenderPipeline DEBUG_LINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation(VanillaUtils.modRL("pipeline/debug_line"))
             .withDepthWrite(true)

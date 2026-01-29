@@ -1,5 +1,6 @@
 package com.xkball.dyson_cube_program.client;
 
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.logging.LogUtils;
 import com.xkball.dyson_cube_program.DysonCubeProgram;
@@ -61,10 +62,15 @@ public class ClientEvent {
     public static void onRegClientCommand(RegisterClientCommandsEvent event){
         event.getDispatcher().register(
                 Commands.literal("dyson_cube_program")
-                        .then(Commands.literal("client")
-                                .then(Commands.literal("rebuild_mesh").executes(ClientEvent::rebuildDysonSphereRendererMesh))
-                                .then(Commands.literal("rebuild_mesh_from_clipboard").executes(ClientEvent::rebuildDysonSphereRendererMeshFromClipboard))
-                                .then(Commands.literal("mesh_build_benchmark").executes(ClientEvent::meshBuildBenchmark))
+                        .redirect(event.getDispatcher().register(Commands.literal("dcp")
+                                .then(Commands.literal("client")
+                                        .then(Commands.literal("rebuild_mesh").executes(ClientEvent::rebuildDysonSphereRendererMesh))
+                                        .then(Commands.literal("rebuild_mesh_from_clipboard").executes(ClientEvent::rebuildDysonSphereRendererMeshFromClipboard))
+                                        .then(Commands.literal("mesh_build_benchmark").executes(ClientEvent::meshBuildBenchmark))
+                                        .then(Commands.literal("set_dyson_sphere_scale").then(Commands.argument("scale", FloatArgumentType.floatArg()).executes(ClientEvent::setDysonSphereScale)))
+                                )
+                        )
+                        
         ));
     }
     
@@ -105,6 +111,16 @@ public class ClientEvent {
                 time += renderer_.sphereRenderer.buildMeshes();
             }
             source.getSource().sendSystemMessage(Component.literal("DysonSphereRenderer buildMeshes benchmark avg time: "+time/10+"ms"));
+        }
+        return 0;
+    }
+    
+    public static int setDysonSphereScale(CommandContext<CommandSourceStack> source){
+        var scale = FloatArgumentType.getFloat(source, "scale");
+        var renderer = Minecraft.getInstance().getBlockEntityRenderDispatcher().renderers.get(DCPTempReg.DEBUG_ENTITY_BLOCK_ENTITY.get());
+        if(renderer instanceof DebugEntityBlockRenderer renderer_){
+            renderer_.scale = scale;
+            source.getSource().sendSystemMessage(Component.literal("DysonSphereRenderer scale set to "+scale));
         }
         return 0;
     }

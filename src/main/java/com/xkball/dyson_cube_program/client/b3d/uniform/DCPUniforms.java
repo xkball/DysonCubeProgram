@@ -39,7 +39,7 @@ public class DCPUniforms {
     
     public static final UpdatableUBO SCREEN_SIZE = new UpdatableUBO.UBOBuilder("screen_size")
             .closeOnExit()
-            .putVec2("ScreenSize", () -> 114, () -> 514)
+            .putVec2("ScreenSize", () -> Minecraft.getInstance().getWindow().getWidth(), () -> Minecraft.getInstance().getWindow().getHeight())
             .build();
     
 }
